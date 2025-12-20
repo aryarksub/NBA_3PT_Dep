@@ -4,6 +4,7 @@ src/temp*
 
 # Large data files
 data/game_logs
+data/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
