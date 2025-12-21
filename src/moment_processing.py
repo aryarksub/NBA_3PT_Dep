@@ -3,6 +3,7 @@ import py7zr
 import shutil
 import json
 import pandas as pd
+import numpy as np
 import shutil
 
 GAME_LOGS_DIR = os.path.join('data', 'game_logs')
@@ -47,6 +48,8 @@ def create_moment_df(fname_7z, save_to_csv=True):
         'ball_x', 'ball_y', 'ball_z'
     ] + [
         col for i in range(10) for col in [f'player{i}_id', f'player{i}_x', f'player{i}_y']
+    ] + [
+        'closest_player_id1', 'closest_player_id2'
     ]
 
     for e in data['events']:
@@ -54,7 +57,9 @@ def create_moment_df(fname_7z, save_to_csv=True):
             locations = m[5]
             ball_x, ball_y, ball_z = locations[0][2:]
             player_list = [point for player_data in locations[1:] for point in player_data[1:4]]
-            row = (e['eventId'], m_id, m[0], m[2], m[3], ball_x, ball_y, ball_z, *player_list)
+            players = [(player_list[i], player_list[i+1], player_list[i+2]) for i in range(0, len(player_list), 3)]
+            closest_players = [player[0] for player in sorted(players, key=lambda p: np.sqrt((p[1] - ball_x)**2 + (p[2] - ball_y)**2))[:2]]
+            row = (e['eventId'], m_id, m[0], m[2], m[3], ball_x, ball_y, ball_z, *player_list, closest_players[0], closest_players[1])
             data_rows.append(row)
     
     shutil.rmtree(TEMP_LOGS_DIR)
@@ -86,9 +91,6 @@ def moment_df_driver(fname=None, save=True):
 
     for root, dirs, files in os.walk(GAME_LOGS_DIR):
         for file in files:
-            if proc_count < 95:
-                proc_count += 1
-                continue
             create_moment_df(fname_7z=file, save_to_csv=save)
             proc_count += 1
 
@@ -98,5 +100,3 @@ def moment_df_driver(fname=None, save=True):
 
 if __name__=='__main__':
     moment_df_driver()
-
-
