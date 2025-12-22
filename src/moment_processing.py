@@ -47,7 +47,7 @@ def create_moment_df(fname_7z, save_to_csv=True):
         'event_id', 'moment_id', 'period', 'clock', 'shot_clock',
         'ball_x', 'ball_y', 'ball_z'
     ] + [
-        col for i in range(10) for col in [f'player{i}_id', f'player{i}_x', f'player{i}_y']
+        col for i in range(10) for col in [f'player{i}_team_id', f'player{i}_id', f'player{i}_x', f'player{i}_y', f'player{i}_ball_dist']
     ] + [
         'closest_player_id1', 'closest_player_id2'
     ]
@@ -56,10 +56,17 @@ def create_moment_df(fname_7z, save_to_csv=True):
         for m_id, m in enumerate(e['moments']):
             locations = m[5]
             ball_x, ball_y, ball_z = locations[0][2:]
-            player_list = [point for player_data in locations[1:] for point in player_data[1:4]]
-            players = [(player_list[i], player_list[i+1], player_list[i+2]) for i in range(0, len(player_list), 3)]
-            closest_players = [player[0] for player in sorted(players, key=lambda p: np.sqrt((p[1] - ball_x)**2 + (p[2] - ball_y)**2))[:2]]
-            row = (e['eventId'], m_id, m[0], m[2], m[3], ball_x, ball_y, ball_z, *player_list, closest_players[0], closest_players[1])
+            player_list = [point for player_data in locations[1:] for point in player_data[:4]]
+            if len(player_list) == 0:
+                continue
+            players = [
+                (
+                    player_list[i], player_list[i+1], player_list[i+2], player_list[i+3], np.sqrt((player_list[i+2] - ball_x)**2 + (player_list[i+3] - ball_y)**2)
+                ) for i in range(0, len(player_list), 4)
+            ]
+            flattened_player_data = [d for player in players for d in player]
+            closest_players = [player[0] for player in sorted(players, key=lambda p: p[3])[:2]]
+            row = (e['eventId'], m_id, m[0], m[2], m[3], ball_x, ball_y, ball_z, *flattened_player_data, int(closest_players[0]), int(closest_players[1]))
             data_rows.append(row)
     
     shutil.rmtree(TEMP_LOGS_DIR)

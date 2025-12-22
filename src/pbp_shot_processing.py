@@ -81,8 +81,8 @@ def convert_pbp_range_to_shots_df(pbp_df_orig, save_file=True):
     # convert pctimestring to seconds_rem
     pbp_df['seconds_rem'] = pbp_df['pctimestring'].apply(lambda x: int(x.split(':')[0]) * 60 + int(x.split(':')[1]))
 
-    # rename player1_id to player_id and player1_team_id to team_id
-    pbp_df.rename(columns={'player1_id': 'player_id', 'player1_team_id': 'team_id'}, inplace=True)
+    # rename columns
+    pbp_df.rename(columns={'player1_id': 'player_id', 'player1_team_id': 'team_id', 'eventnum': 'event_id'}, inplace=True)
 
     # make IDs integers
     pbp_df[['player_id', 'team_id']] = pbp_df[['player_id', 'team_id']].astype('Int64')
@@ -94,7 +94,7 @@ def convert_pbp_range_to_shots_df(pbp_df_orig, save_file=True):
     ).astype(int)
 
     # select only the required columns
-    columns_to_keep = ['game_id', 'game_date', 'eventnum', 'player_id', 'team_id', 'period', 'seconds_rem', '3pt', 'fgm']
+    columns_to_keep = ['game_id', 'game_date', 'event_id', 'player_id', 'team_id', 'period', 'seconds_rem', '3pt', 'fgm']
     shots_df = pbp_df[columns_to_keep]
 
     if save_file:
