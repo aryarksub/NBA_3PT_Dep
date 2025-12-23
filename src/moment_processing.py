@@ -37,10 +37,10 @@ def create_moment_df(fname_7z, save_to_csv=True):
 
     game_id = data['gameid']
     save_file = os.path.join(MOMENT_DATA_DIR, f'{game_id}.csv')
-    # Do not repeat dataframe creation for games that already have been processed
-    if os.path.exists(save_file):
-        shutil.rmtree(TEMP_LOGS_DIR)
-        return
+    # NOTE: Uncomment to avoid repeating dataframe creation for games that already have been processed
+    # if os.path.exists(save_file):
+    #     shutil.rmtree(TEMP_LOGS_DIR)
+    #     return
 
     data_rows = []
     df_cols = [
@@ -59,13 +59,14 @@ def create_moment_df(fname_7z, save_to_csv=True):
             player_list = [point for player_data in locations[1:] for point in player_data[:4]]
             if len(player_list) == 0:
                 continue
+            # store player's team id, player id, player x-coord, player y-coord, player dist to ball
             players = [
                 (
                     player_list[i], player_list[i+1], player_list[i+2], player_list[i+3], np.sqrt((player_list[i+2] - ball_x)**2 + (player_list[i+3] - ball_y)**2)
                 ) for i in range(0, len(player_list), 4)
             ]
             flattened_player_data = [d for player in players for d in player]
-            closest_players = [player[0] for player in sorted(players, key=lambda p: p[3])[:2]]
+            closest_players = [player[1] for player in sorted(players, key=lambda p: p[-1])[:2]]
             row = (e['eventId'], m_id, m[0], m[2], m[3], ball_x, ball_y, ball_z, *flattened_player_data, int(closest_players[0]), int(closest_players[1]))
             data_rows.append(row)
     
