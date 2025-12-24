@@ -111,6 +111,8 @@ def add_prev_shot_results(df_orig, num_shots=5, save_file=True):
     column (grouped by game and player) to track the shot number indices for each shot a 
     player takes. It also includes fgm{i} and tot{i} columns which track the result of the
     ith previous shot and the number of made shots in the previous i shots, respectively. 
+    We also add a streak column that tracks the number of consecutive made shots before the
+    current shot was taken.
 
     Args:
         df_orig (pd.DataFrame): Shot log dataset
@@ -137,6 +139,27 @@ def add_prev_shot_results(df_orig, num_shots=5, save_file=True):
         df[f"tot{i}"] = g["fgm"].transform(
             lambda s: s.shift(1).rolling(i, min_periods=i).sum()
         )
+
+    def compute_streak(s):
+        """
+        Compute the streak of consecutive successful shot makes.
+
+        Args:
+            s (pd.Series): Series of field goal results (0 = miss, 1 = make).
+
+        Returns:
+            pd.Series: Series where each value represents the current streak of consecutive shot makes for that 
+            position. Streak resets to 0 after a miss.
+        """
+        # Shift to compare shots to previous shot
+        prev = s.shift(1)
+        # Group shot makes by checking when 1 turns to 0 (miss after make)
+        streak = prev.groupby((prev != 1).cumsum()).cumcount()
+        # Reset streak to 0 whenever there's a miss (prev != 1)
+        streak[prev != 1] = 0
+        return streak
+    
+    df['streak'] = g['fgm'].transform(compute_streak)
 
     if save_file:
         df.to_csv(SHOT_HISTORY_FILE, index=False)
