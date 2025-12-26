@@ -1,6 +1,7 @@
 import statsmodels.formula.api as smf
 from statsmodels.gam.api import GLMGam, BSplines
 import pandas as pd
+import numpy as np
 import os
 import sys
 
@@ -83,6 +84,50 @@ def defense_metric_heat_regression_gam(df, model_type='gam_3_4', window=3, metri
     
     return model
 
+def f_test(model, window):
+    """
+    Run a joint significance ordered difference F-test on the given fit model where the model used the given shot window.
+    The hypotheses are of the form B_1 - B_0 = 0, B_2 - B_1 = 0, ... (i.e. pairwise coefficient differences).
+
+    Args:
+        model (model): Fit OLS model
+        window (int): Shot history window
+
+    Returns:
+        float: F-test p-value
+    """
+    hypotheses = []
+    for k in range(1, window + 1):
+        hypotheses.append(
+            f"C(tot{window})[{k*1.0}] - C(tot{window})[{(k-1)*1.0}] = 0"
+        )
+
+    f_test = model.f_test(hypotheses)
+    return f_test.pvalue
+
+
+def trend_test(model, window):
+    """
+    Linear trend test for heat metric coefficients in the given model using the given shot window.
+
+    Args:
+        model (model): Fit OLS model
+        window (int): Shot history window
+
+    Returns:
+        float: Trend test p-value
+    """
+    coef_names = model.params.index
+    L = np.zeros(len(model.params))
+
+    for i, term in enumerate(coef_names):
+        if f"C(tot{window})" in term:
+            k = float(term.split("[")[-1].rstrip("]"))
+            L[i] = k
+
+    trend_test = model.t_test(L)
+    return trend_test.pvalue
+
 def model_metrics_driver(
         shots_df, 
         metrics=['close_def_dist', 'avg_def_dist'], 
@@ -133,11 +178,14 @@ def model_metrics_driver(
                     fit_model = defense_metric_heat_regression_gam(shots_df_no_nan, model_type=model, window=window, metric=metric)
 
                 aic, loglik = fit_model.aic, fit_model.llf
-                results.append((model, metric, window, aic, loglik))
+                # F-test and trend test is only supported for categorical OLS model
+                f_test_p_val = f_test(fit_model, window) if model == 'ols_cat' else None
+                trend_test_p_val = trend_test(fit_model, window) if model == 'ols_cat' else None
+                results.append((model, metric, window, aic, loglik, f_test_p_val, trend_test_p_val))
     
     results_df = pd.DataFrame(
         results,
-        columns=['model', 'metric', 'window', 'aic', 'loglik']
+        columns=['model', 'metric', 'window', 'aic', 'loglik', 'f_test_p_val', 'trend_test_p_val']
     )
 
     if save:
@@ -221,18 +269,20 @@ def prepare_and_plot_ols_model(df, model, metric, window, fname):
         save_file=fname
     )
 
-def main_driver(plot=False):
+def main_driver(plot=False, redo=False):
     """
     Main driver for running the experiment.
 
     Args:
         plot (bool, optional): True if plots should be generated; False otherwise. Defaults to False.
+        redo (bool, optional): True if models should be re-fit even if their results dataset exists; False
+        otherwise. Defaults to False
     """
     shots_df = pd.read_csv(SHOT_HISTORY_DEF_FILE)
 
     # Run OLS/GAM regression models (if results files don't exist)
     for model_type, file in sorted(DEF_METRIC_HEAT_REG_RESULTS_FILES.items()):
-        if not os.path.exists(file):
+        if redo or not os.path.exists(file):
             if model_type == 'all':
                 model_metrics_driver(shots_df, save=True, verbose=True)
                 break
@@ -296,5 +346,5 @@ def alternate_runs():
 
 
 if __name__=='__main__':
-    main_driver(plot=True)
+    main_driver(plot=True, redo=True)
     alternate_runs()
