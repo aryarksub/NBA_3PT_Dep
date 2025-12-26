@@ -278,7 +278,7 @@ def alternate_runs():
     """
     shots_df = pd.read_csv(SHOT_HISTORY_DEF_FILE)
 
-    for window in [3,5]:
+    for window in [3,4,5,6]:
         for metric in ['close_def_dist', 'avg_def_dist']:
             cols_needed = [
                 metric, f'tot{window}', 'shot_dist', 'shot_clock', 'period', 'seconds_rem', 'game_id', 'player_id'
