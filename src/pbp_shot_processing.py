@@ -225,7 +225,7 @@ def compute_shot_def_info_from_moment(moment_row, player_id):
     Compute shot and defender information for the shot corresponding to the given moment.
     This includes the shot distance, time left on the shot clock, closest defender player ID,
     closest defender's team ID, closest defender's distance to shooter, average defender
-    distance, and convex hull area of all defenders.
+    distance, convex hull area of all defenders, shooter location, and defender locations.
 
     Args:
         moment_row (pd.Series): Moment data for the shot
@@ -321,22 +321,26 @@ def compute_shot_def_info_from_moment(moment_row, player_id):
     avg_def_dist = sum(defender[-1] for defender in defenders) / len(defenders)
     def_hull_area = compute_convex_hull_area(defenders)
 
-    return (
+    return [
         compute_shot_dist(shooter_x, shooter_y), 
         moment_data['shot_clock'], 
         defenders[0][0], 
         defenders[0][1], 
         defenders[0][-1], 
         avg_def_dist, 
-        def_hull_area
-    )
+        def_hull_area,
+        shooter_x,
+        shooter_y,
+    ] + [
+        defenders[i][j] for i in range(len(defenders)) for j in range(2, 4)
+    ]
 
 def add_shot_def_info(shot_df_orig, save_file=True):
     """
     Given a shot log dataset, add columns for shot and defender information. This includes 
     the shot distance, time left on the shot clock, closest defender player ID, closest 
     defender's team ID, closest defender's distance to shooter, average defender distance, 
-    and convex hull area of all defenders.
+    convex hull area of all defenders, shooter location, and defender locations.
 
     Args:
         shot_df_orig (pd.DataFrame): Shot log DataFrame
@@ -347,7 +351,12 @@ def add_shot_def_info(shot_df_orig, save_file=True):
         pd.DataFrame: Shot log dataset with shot and defender information
     """
     shot_df = shot_df_orig.copy()
-    new_cols = ["shot_dist", "shot_clock", "close_def_id", "close_def_team_id", "close_def_dist", "avg_def_dist", "def_hull_area"]
+    new_cols = [
+        "shot_dist", "shot_clock", "close_def_id", "close_def_team_id", "close_def_dist", "avg_def_dist", "def_hull_area",
+        "shooter_x", "shooter_y"
+    ] + [
+        f"def{i}_{'x' if j % 2 == 0 else 'y'}" for i in range(1, 6) for j in range(2)
+    ]
     shot_df[new_cols] = np.nan
 
     # Group shots by game
