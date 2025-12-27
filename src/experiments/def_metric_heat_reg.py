@@ -11,6 +11,7 @@ from pbp_shot_processing import SHOT_HISTORY_DEF_FILE
 import plots
 
 RESULTS_DIR = 'results'
+DEF_METRIC_HEAT_REG_PLOTS_DIR = os.path.join(plots.PLOTS_DIR, 'def_metric_heat_reg')
 DEF_METRIC_HEAT_REG_RESULTS_FILES = {
     'ols': os.path.join(RESULTS_DIR, 'def_metric_heat_reg_ols.csv'),
     'gam': os.path.join(RESULTS_DIR, 'def_metric_heat_reg_gam.csv'),
@@ -316,9 +317,11 @@ def main_driver(plot=False, redo=False):
 
         # Plotting CIs for GAM doesn't work properly so just do it if the best model is OLS
         if plot and 'ols' in best_model_type:
+            if not os.path.exists(DEF_METRIC_HEAT_REG_PLOTS_DIR):
+                os.makedirs(DEF_METRIC_HEAT_REG_PLOTS_DIR)
             prepare_and_plot_ols_model(
                 shots_df_no_nan, best_model, metric, best_model_window,
-                fname=os.path.join(plots.PLOTS_DIR, f'{metric}_{best_model_type}_{best_model_window}_BEST_ci.png')
+                fname=os.path.join(DEF_METRIC_HEAT_REG_PLOTS_DIR, f'{metric}_{best_model_type}_{best_model_window}_BEST_ci.png')
             )
 
 def alternate_runs():
@@ -341,10 +344,10 @@ def alternate_runs():
             )
             prepare_and_plot_ols_model(
                 shots_df_no_nan, model, metric, window,
-                fname=os.path.join(plots.PLOTS_DIR, f'{metric}_{model_type}_{window}_ci.png')
+                fname=os.path.join(DEF_METRIC_HEAT_REG_PLOTS_DIR, f'{metric}_{model_type}_{window}_ci.png')
             )
 
 
 if __name__=='__main__':
-    main_driver(plot=True, redo=True)
+    main_driver(plot=True, redo=False)
     alternate_runs()
