@@ -209,7 +209,7 @@ def model_metrics_driver(
         verbose (bool, optional): True if descriptive messages should be printed; False otherwise. Defaults to False.
 
     Returns:
-        pd.DataFrame: Dataset of results (model type, metric, window, AIC, log-likelihood, additional test results).
+        pd.DataFrame: Dataset of results (model type, metric, AIC, log-likelihood, additional test results).
     """
     results = []
     
