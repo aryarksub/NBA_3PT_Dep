@@ -6,6 +6,9 @@ src/temp*
 data/game_logs
 data/*
 
+# Files related to paper submissions
+paper*/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
