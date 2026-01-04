@@ -105,7 +105,7 @@ def create_mean_prediction_df(df, streak_col='streak', extra_streak_cols=[]):
         extra_streak_cols (list, optional): Extra columns to add to prediction DataFrame. Defaults to [].
 
     Returns:
-        _type_: _description_
+        pd.DataFrame: Mean metric prediction DataFrame
     """
     streak_grid = np.arange(0, df[streak_col].max() + 1)
     pred_dict = {
@@ -130,7 +130,7 @@ def f_test(model, term_like='streak'):
         term_like (str, optional): Term for which model parameters should be matched. Defaults to 'streak'.
 
     Returns:
-        _type_: _description_
+        float: F-test p-value
     """
     terms = model.params.filter(like=term_like).index
     hypothesis = " = ".join(terms) + " = 0"
@@ -148,7 +148,7 @@ def finite_diff_trend_test(model, shots_df, mean_col='mean', extra_streak_cols=[
         extra_streak_cols (list, optional): Extra columns to use when creating prediction DataFrame. Defaults to [].
 
     Returns:
-        _type_: _description_
+        tuple: Tuple of trend test p-value and first differences array
     """
     # Make predictions on streak grid
     pred_df = create_mean_prediction_df(shots_df, extra_streak_cols=extra_streak_cols)
@@ -343,6 +343,15 @@ def additional_runs():
             shots_df_no_nan, model, metric,
             fname=os.path.join(STREAK_REG_PLOTS_DIR, f'{metric}_{m_type}_ci.png')
         )
+    
+    plots.merge_three_png_plots(
+        [
+            os.path.join(STREAK_REG_PLOTS_DIR, 'avg_def_dist_poly_2_ci.png'),
+            os.path.join(STREAK_REG_PLOTS_DIR, 'close_def_dist_poly_2_BEST_ci.png'),
+            os.path.join(STREAK_REG_PLOTS_DIR, 'def_hull_area_poly_2_ci.png')
+        ],
+        os.path.join(STREAK_REG_PLOTS_DIR, 'streak_poly_2_plots.png')
+    )
 
 
 if __name__=='__main__':
