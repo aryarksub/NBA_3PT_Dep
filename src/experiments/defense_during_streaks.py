@@ -268,11 +268,13 @@ def prepare_and_plot_ols_model(df, model, metric, fname):
     pred = model.get_prediction(pred_df).summary_frame(alpha=0.05)
     pred['streak'] = range(df['streak'].max() + 1)
 
+    metric_with_unit = f'{metric} (feet)' if 'dist' in metric else f'{metric} (square feet)'
+
     plots.plot_cis(
         dfs=[pred], 
         x_col='streak', mean_col='mean', low_col='mean_ci_lower', high_col='mean_ci_upper',
         x_label=f'Number of previous consecutive makes',
-        y_labels=[metric],
+        y_labels=[metric_with_unit],
         save_file=fname
     )
 
@@ -350,7 +352,8 @@ def additional_runs():
             os.path.join(STREAK_REG_PLOTS_DIR, 'close_def_dist_poly_2_BEST_ci.png'),
             os.path.join(STREAK_REG_PLOTS_DIR, 'def_hull_area_poly_2_ci.png')
         ],
-        os.path.join(STREAK_REG_PLOTS_DIR, 'streak_poly_2_plots.png')
+        os.path.join(STREAK_REG_PLOTS_DIR, 'streak_poly_2_plots.png'),
+        horiz=False
     )
 
 

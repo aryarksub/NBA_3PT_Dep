@@ -262,11 +262,13 @@ def prepare_and_plot_ols_model(df, model, metric, window, fname):
     pred = model.get_prediction(pred_df).summary_frame(alpha=0.05)
     pred['k'] = range(window + 1)
 
+    metric_with_unit = f'{metric} (feet)' if 'dist' in metric else f'{metric} (square feet)'
+
     plots.plot_cis(
         dfs=[coef_df, pred], 
         x_col='k', mean_col='mean', low_col='mean_ci_lower', high_col='mean_ci_upper',
         x_label=f'Number of makes in previous {window} shots',
-        y_labels=[f'{metric} coefficient', metric],
+        y_labels=[f'{metric} coefficient', metric_with_unit],
         save_file=fname
     )
 
