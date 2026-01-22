@@ -9,7 +9,7 @@ if not os.path.exists(PLOTS_DIR):
 
 plt.style.use("grayscale")
 
-def plot_cis(dfs, x_col, mean_col='mean', low_col='mean_ci_lower', high_col='mean_ci_upper', x_label="", y_labels=[], save_file=None):
+def plot_cis(dfs, x_col, mean_col='mean', low_col='mean_ci_lower', high_col='mean_ci_upper', x_label="", y_labels=[], font_size=16, save_file=None):
     """
     Plot multiple confidence intervals in a vertical layout.
 
@@ -21,6 +21,7 @@ def plot_cis(dfs, x_col, mean_col='mean', low_col='mean_ci_lower', high_col='mea
         high_col (str, optional): Column name for CI upper bound values. Defaults to 'mean_ci_upper'.
         x_label (str, optional): Label for x-axis. Defaults to "".
         y_labels (list, optional): List of labels for y-axes. Defaults to [].
+        font_size (int, optional): Font size for labels and ticks. Defaults to 16.
         save_file (str, optional): File name for saving plots. Defaults to None.
     """
     # One subplot per df confidence interval
@@ -36,12 +37,12 @@ def plot_cis(dfs, x_col, mean_col='mean', low_col='mean_ci_lower', high_col='mea
     for ax, df, y_label in zip(axes, dfs, y_labels):
         ax.plot(df[x_col], df[mean_col], marker='o')
         ax.fill_between(df[x_col], df[low_col], df[high_col], alpha=0.25)
-        ax.set_ylabel(y_label, fontsize=16)
+        ax.set_ylabel(y_label, fontsize=font_size)
         # Mean line for first data point (baseline)
         ax.axhline(df[mean_col].iloc[0], linestyle="--", alpha=0.6)
-        ax.tick_params(axis='both', labelsize=16)
+        ax.tick_params(axis='both', labelsize=font_size)
     
-    axes[-1].set_xlabel(x_label, fontsize=16)
+    axes[-1].set_xlabel(x_label, fontsize=font_size)
     plt.tight_layout()
     
     if save_file:

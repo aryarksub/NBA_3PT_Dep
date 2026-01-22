@@ -275,6 +275,7 @@ def prepare_and_plot_ols_model(df, model, metric, fname):
         x_col='streak', mean_col='mean', low_col='mean_ci_lower', high_col='mean_ci_upper',
         x_label=f'Number of previous consecutive makes',
         y_labels=[metric_with_unit],
+        font_size=20,
         save_file=fname
     )
 
@@ -353,7 +354,7 @@ def additional_runs():
             os.path.join(STREAK_REG_PLOTS_DIR, 'def_hull_area_poly_2_ci.png')
         ],
         os.path.join(STREAK_REG_PLOTS_DIR, 'streak_poly_2_plots.png'),
-        layout='stack21'
+        layout='vert'
     )
 
 
