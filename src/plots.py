@@ -36,11 +36,12 @@ def plot_cis(dfs, x_col, mean_col='mean', low_col='mean_ci_lower', high_col='mea
     for ax, df, y_label in zip(axes, dfs, y_labels):
         ax.plot(df[x_col], df[mean_col], marker='o')
         ax.fill_between(df[x_col], df[low_col], df[high_col], alpha=0.25)
-        ax.set_ylabel(y_label)
+        ax.set_ylabel(y_label, fontsize=16)
         # Mean line for first data point (baseline)
         ax.axhline(df[mean_col].iloc[0], linestyle="--", alpha=0.6)
+        ax.tick_params(axis='both', labelsize=16)
     
-    axes[-1].set_xlabel(x_label)
+    axes[-1].set_xlabel(x_label, fontsize=16)
     plt.tight_layout()
     
     if save_file:
