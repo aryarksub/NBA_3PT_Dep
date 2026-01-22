@@ -178,15 +178,15 @@ def model_metrics_driver(
                 elif 'gam' in model:
                     fit_model = defense_metric_heat_regression_gam(shots_df_no_nan, model_type=model, window=window, metric=metric)
 
-                aic, loglik = fit_model.aic, fit_model.llf
+                aic, bic, loglik = fit_model.aic, fit_model.bic, fit_model.llf
                 # F-test and trend test is only supported for categorical OLS model
                 f_test_p_val = f_test(fit_model, window) if model == 'ols_cat' else None
                 trend_test_p_val = trend_test(fit_model, window) if model == 'ols_cat' else None
-                results.append((model, metric, window, aic, loglik, f_test_p_val, trend_test_p_val))
+                results.append((model, metric, window, aic, bic, loglik, f_test_p_val, trend_test_p_val))
     
     results_df = pd.DataFrame(
         results,
-        columns=['model', 'metric', 'window', 'aic', 'loglik', 'f_test_p_val', 'trend_test_p_val']
+        columns=['model', 'metric', 'window', 'aic', 'bic', 'loglik', 'f_test_p_val', 'trend_test_p_val']
     )
 
     if save:

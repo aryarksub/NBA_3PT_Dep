@@ -232,19 +232,19 @@ def model_metrics_driver(
 
             fit_model = streak_regression_ols(shots_df_no_nan, streak_term=streak_term, metric=metric)
 
-            aic, loglik = fit_model.aic, fit_model.llf
+            aic, bic, loglik = fit_model.aic, fit_model.bic, fit_model.llf
             f_test_p_val = f_test(fit_model, term_like='streak')
             trend_test_p_val, delta = finite_diff_trend_test(fit_model, shots_df_no_nan, mean_col='mean', extra_streak_cols=extra_streak_cols)
             direction_persistence, num_dir_changes, sign_ci, zero_in_sign_ci = directionally_monotone_inference(delta)
             results.append((
-                m_type, metric, aic, loglik, f_test_p_val, trend_test_p_val,
+                m_type, metric, aic, bic, loglik, f_test_p_val, trend_test_p_val,
                 direction_persistence, num_dir_changes, sign_ci[0], sign_ci[1], zero_in_sign_ci
             ))
     
     results_df = pd.DataFrame(
         results,
         columns=[
-            'model', 'metric', 'aic', 'loglik', 'f_test_p_val', 'trend_test_p_val',
+            'model', 'metric', 'aic', 'bic', 'loglik', 'f_test_p_val', 'trend_test_p_val',
             'dir_persistence', 'dir_changes', 'sign_ci_low', 'sign_ci_high', 'zero_in_ci'
         ]
     )
@@ -358,5 +358,5 @@ def additional_runs():
 
 
 if __name__=='__main__':
-    main_driver()
+    main_driver(plot=True, redo=False)
     additional_runs()
