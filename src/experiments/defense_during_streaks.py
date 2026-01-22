@@ -353,7 +353,7 @@ def additional_runs():
             os.path.join(STREAK_REG_PLOTS_DIR, 'def_hull_area_poly_2_ci.png')
         ],
         os.path.join(STREAK_REG_PLOTS_DIR, 'streak_poly_2_plots.png'),
-        horiz=False
+        layout='stack21'
     )
 
 
