@@ -212,6 +212,7 @@ def main_driver(plot=True, redo=False):
             shots_df_updated, metric=metric
         )
         print(f'{metric} Coefficients for make_last, miss_last:', best_model.params['make_last'], best_model.params['miss_last'])
+        print('All non-player-id coefficients:\n', best_model.params.drop(labels=[col for col in best_model.params.index if 'player_id' in col]))
         
         if plot:
             if not os.path.exists(REC_BIAS_PLOTS_DIR):
