@@ -8,9 +8,12 @@ from moment_processing import MOMENT_DATA_DIR
 # PBP data source: https://www.kaggle.com/datasets/wyattowalsh/basketball?resource=download
 FULL_PBP_FILE = os.path.join('data', 'play_by_play.csv')
 GAME_INFO_FILE = os.path.join('data', 'game_info.csv')
+GAMES_FILE = os.path.join('data', 'game.csv')
+PBP_15_16_FILE = os.path.join('data', 'pbp_2015_2016.csv')
 BASIC_SHOTS_FILE = os.path.join('data', 'pbp_shots_basic.csv')
 SHOT_HISTORY_FILE = os.path.join('data', 'pbp_shots_history.csv')
 SHOT_HISTORY_DEF_FILE = os.path.join('data', 'pbp_shots_history_with_def.csv')
+FINAL_FILE = os.path.join('data', 'pbp_final.csv')
 
 def get_stored_moment_game_ids():
     """
@@ -393,16 +396,92 @@ def add_shot_def_info(shot_df_orig, save_file=True):
 
     return shot_df
 
+def add_home_team_info(shot_df_orig, save_file=True):
+    """
+    Given a shot log dataset, add a column indicating whether the shooter is on the home
+    team (1) or not (0).
+
+    Args:
+        shot_df_orig (pd.DataFrame): Shot log DataFrame
+        save_file (bool, optional): True if curated dataset should be saved to a CSV file;
+         False otherwise. Defaults to True.
+
+    Returns:
+        pd.DataFrame: Shot log dataset with home/away information
+    """
+    shots = shot_df_orig.copy()
+    games = pd.read_csv(GAMES_FILE)
+    
+    shots["game_id"] = shots["game_id"].astype(str)
+
+    # Keep only columns needed for merge
+    games_lookup = games[["game_id", "team_id_home", "team_id_away"]].copy()
+    games_lookup["game_id"] = games_lookup["game_id"].astype(str)
+
+    # Merge
+    shots = shots.merge(
+        games_lookup,
+        left_on="game_id",
+        right_on="game_id",
+        how="left",
+    )
+
+    # Create home column
+    shots["home"] = np.where(
+        shots["team_id"] == shots["team_id_home"], 1,
+        np.where(
+            shots["team_id"] == shots["team_id_away"], 0,
+            np.nan  # indicates an issue
+        )
+    )
+
+    # Identify problematic rows
+    issues = shots[shots["home"].isna()]
+
+    if not issues.empty:
+        print("Found rows where team_id matched neither home nor away:")
+        print(issues[["game_id", "team_id", "team_id_home", "team_id_away"]].head())
+
+    if save_file:
+        shots.to_csv(FINAL_FILE, index=False)
+
+    return shots
+
 
 if __name__=='__main__':
-    print('Creating play by play range dataset')
-    pbp = create_pbp_range_dataset('2015-10-01', '2016-01-31', save_file=os.path.join('data', 'pbp_2015_2016.csv'))
-    
-    print('Converting pbp range dataset to shots dataset')
-    shots_df = convert_pbp_range_to_shots_df(pbp)
+    redo = False
 
-    print('Creating shot history dataset')
-    shot_history_df = add_prev_shot_results(shots_df, num_shots=10)
+    if not os.path.exists(PBP_15_16_FILE) or redo:
+        print('Creating play by play range dataset')
+        pbp = create_pbp_range_dataset('2015-10-01', '2016-01-31', save_file=PBP_15_16_FILE)
+    else:
+        print('Loading play by play range dataset')
+        pbp = pd.read_csv(PBP_15_16_FILE)
 
-    print('Creating shot history dataset with defender information')
-    shot_history_def_df = add_shot_def_info(shot_history_df)
+    if not os.path.exists(BASIC_SHOTS_FILE) or redo:
+        print('Converting pbp range dataset to shots dataset')
+        shots_df = convert_pbp_range_to_shots_df(pbp)
+    else:
+        print('Loading converted shots dataset')
+        shots_df = pd.read_csv(BASIC_SHOTS_FILE)
+
+    if not os.path.exists(SHOT_HISTORY_FILE) or redo:
+        print('Creating shot history dataset')
+        shot_history_df = add_prev_shot_results(shots_df, num_shots=10)
+    else:
+        print('Loading shot history dataset')
+        shot_history_df = pd.read_csv(SHOT_HISTORY_FILE)
+
+    if not os.path.exists(SHOT_HISTORY_DEF_FILE) or redo:
+        print('Creating shot history dataset with defender information')
+        shot_history_def_df = add_shot_def_info(shot_history_df)
+    else:
+        print('Loading shot history dataset with defender information')
+        shot_history_def_df = pd.read_csv(SHOT_HISTORY_DEF_FILE)
+
+    if not os.path.exists(FINAL_FILE) or redo:
+        print('Adding home team information to dataset')
+        final_df = add_home_team_info(shot_history_def_df)
+    else:
+        print('Loading final dataset')
+        final_df = pd.read_csv(FINAL_FILE)
