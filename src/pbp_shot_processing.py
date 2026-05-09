@@ -276,6 +276,34 @@ def compute_shot_def_info_from_moment(moment_row, player_id):
         # Sort defenders in increasing order of distance to shooter
         defenders.sort(key = (lambda x : x[-1]))
         return defenders
+    
+    def get_teammate_info(data, shooter_index):
+        """
+        Get the teammate information from the moment data given the shooter's index.
+
+        Args:
+            data (dict): Moment data stored as a dict
+            shooter_index (int): Shooter index (0 to 9)
+
+        Returns:
+            list: List of teammate information
+        """
+        teammates = []
+        shooter_x, shooter_y = data[f'player{shooter_index}_x'], data[f'player{shooter_index}_y']
+        for i in range(10):
+            # Teammates are players who are on same team as shooter
+            if data[f'player{i}_team_id'] == shooter_team_id and i != shooter_index:
+                tmate_x, tmate_y = data[f'player{i}_x'], data[f'player{i}_y']
+                tmate_dist = np.sqrt((tmate_x - shooter_x)**2 + (tmate_y - shooter_y)**2)
+                # Teammate info: ID, team ID, x-coord, y-coord, distance to shooter
+                teammates.append([
+                    data[f'player{i}_id'], data[f'player{i}_team_id'], tmate_x, tmate_y, tmate_dist
+                ])
+        assert len(teammates) == 4
+
+        # Sort teammates in increasing order of distance to shooter
+        teammates.sort(key = (lambda x : x[-1]))
+        return teammates
 
     def compute_shot_dist(x, y):
         """
@@ -319,6 +347,8 @@ def compute_shot_def_info_from_moment(moment_row, player_id):
     # Shooter information
     shooter_team_id = moment_data[f'player{shooter_index}_team_id']
     shooter_x, shooter_y = moment_data[f'player{shooter_index}_x'], moment_data[f'player{shooter_index}_y']
+    # Teammate information
+    teammates = get_teammate_info(moment_data, shooter_index)
     # Defender information and metrics
     defenders = get_defender_info(moment_data, shooter_index)
     avg_def_dist = sum(defender[-1] for defender in defenders) / len(defenders)
@@ -335,7 +365,9 @@ def compute_shot_def_info_from_moment(moment_row, player_id):
         shooter_x,
         shooter_y,
     ] + [
-        defenders[i][j] for i in range(len(defenders)) for j in range(2, 4)
+        teammates[i][j] for i in range(len(teammates)) for j in range(2, 4) # only take x,y data
+    ] + [
+        defenders[i][j] for i in range(len(defenders)) for j in range(2, 4) # only take x,y data
     ]
 
 def add_shot_def_info(shot_df_orig, save_file=True):
@@ -358,9 +390,13 @@ def add_shot_def_info(shot_df_orig, save_file=True):
         "shot_dist", "shot_clock", "close_def_id", "close_def_team_id", "close_def_dist", "avg_def_dist", "def_hull_area",
         "shooter_x", "shooter_y"
     ] + [
+        f"tmate{i}_{'x' if j % 2 == 0 else 'y'}" for i in range(1, 5) for j in range(2)
+    ] + [
         f"def{i}_{'x' if j % 2 == 0 else 'y'}" for i in range(1, 6) for j in range(2)
     ]
     shot_df[new_cols] = np.nan
+
+    count = 0
 
     # Group shots by game
     for game_id, shots_g in shot_df.groupby("game_id"):
@@ -390,6 +426,10 @@ def add_shot_def_info(shot_df_orig, save_file=True):
 
             # Store defender information + shot clock
             shot_df.loc[row.Index, new_cols] = clock_def_info
+        
+        count += 1
+        if count % 50 == 0:
+            print(f'*********Processed {count} games*********')
 
     if save_file:
         shot_df.to_csv(SHOT_HISTORY_DEF_FILE, index=False)
