@@ -7,6 +7,8 @@ from pbp_shot_processing import FINAL_FILE
 from shot_prob_model import xgb_classifier, train_xgb_clf
 
 SHOTS_EXP_PTS_FILE = os.path.join('data', 'exp_pts.csv')
+CF_DEP_PLAYER_FILE = os.path.join('data', 'cf_dep_player.csv')
+CF_DEP_TEAM_FILE = os.path.join('data', 'cf_dep_team.csv')
 
 
 def create_base_df():
@@ -41,6 +43,36 @@ def add_exp_pts_col(df, model_in, model_out, model_params):
 
     return df_mod
 
+def create_base_cf_dep_df(df, group=['player_id', 'team_id']):
+    # all-shot average EP for each group
+    ep_all = (
+        df.groupby(group)['expected_points']
+        .mean()
+        .reset_index(name='ep_all')
+    )
+
+    # 2PT-only average EP for each group
+    ep_2pt = (
+        df[df['3pt'] == 0]
+        .groupby(group)['expected_points']
+        .mean()
+        .reset_index(name='ep_2pt')
+    )
+
+    # merge together
+    final_ep = ep_all.merge(
+        ep_2pt,
+        on=group,
+        how='left'
+    )
+
+    # expected points difference
+    final_ep['delta_ep'] = (
+        final_ep['ep_all'] - final_ep['ep_2pt']
+    )
+
+    return final_ep
+
 
 if __name__=='__main__':
     create_exp_pts_df = False
@@ -60,3 +92,21 @@ if __name__=='__main__':
     else:
         print('Loading existing expected points dataset')
         df_exp_pts = pd.read_csv(SHOTS_EXP_PTS_FILE)
+
+    create_ep_df = True
+
+    if create_ep_df or not os.path.exists(CF_DEP_PLAYER_FILE):
+        print('Creating base player counterfactual dependence dataset')
+        base_cf_def_player_df = create_base_cf_dep_df(df_exp_pts, group=['player_id', 'team_id'])
+
+        print('Creating base team counterfactual dependence dataset')
+        base_cf_def_team_df = create_base_cf_dep_df(df_exp_pts, group=['team_id'])
+
+        base_cf_def_player_df.to_csv(CF_DEP_PLAYER_FILE, index=False)
+        base_cf_def_team_df.to_csv(CF_DEP_TEAM_FILE, index=False)
+    else:
+        print('Loading player counterfactual dependence dataset')
+        cf_dep_player_df = pd.read_csv(CF_DEP_PLAYER_FILE)
+
+        print('Loading team counterfactual dependence dataset')
+        cf_dep_team_df = pd.read_csv(CF_DEP_TEAM_FILE)
