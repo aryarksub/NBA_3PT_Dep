@@ -6,7 +6,7 @@ from sklearn.utils.validation import check_is_fitted
 from pbp_shot_processing import FINAL_FILE
 from shot_prob_model import xgb_classifier, train_xgb_clf
 
-CF_DEP_FILE = os.path.join('data', 'cf_dep.csv')
+SHOTS_EXP_PTS_FILE = os.path.join('data', 'exp_pts.csv')
 
 
 def create_base_df():
@@ -43,14 +43,20 @@ def add_exp_pts_col(df, model_in, model_out, model_params):
 
 
 if __name__=='__main__':
-    print('Creating base dataset from shot/play-by-play dataset')
-    base_df = create_base_df()
+    create_exp_pts_df = False
 
-    print('Using best features/parameters as found by running shot_prob_model.py')
-    features = ['seconds_rem', 'streak', 'shot_dist', 'shot_clock', 'close_def_dist', 'avg_def_dist', 'def_hull_area', 'home']
-    params = {'learning_rate': np.float64(0.10504923529404636), 'max_depth': 5, 'max_leaves': 7, 'n_estimators': 149, 'reg_alpha': np.float64(0.5989426731764285), 'reg_lambda': np.float64(1.686054542997947), 'subsample': 0.9}
-    print(f"Best features: {features}\nBest params: {params}")
-    print('Adding shot probability/expected points columns to dataset')
-    df_exp_pts = add_exp_pts_col(base_df, features, ['fgm'], params)
-    
-    df_exp_pts.to_csv(CF_DEP_FILE, index=False)
+    if create_exp_pts_df or not os.path.exists(SHOTS_EXP_PTS_FILE):
+        print('Creating base dataset from shot/play-by-play dataset')
+        base_df = create_base_df()
+
+        print('Using best features/parameters as found by running shot_prob_model.py')
+        features = ['seconds_rem', 'streak', 'shot_dist', 'shot_clock', 'close_def_dist', 'avg_def_dist', 'def_hull_area', 'home']
+        params = {'learning_rate': np.float64(0.10504923529404636), 'max_depth': 5, 'max_leaves': 7, 'n_estimators': 149, 'reg_alpha': np.float64(0.5989426731764285), 'reg_lambda': np.float64(1.686054542997947), 'subsample': 0.9}
+        print(f"Best features: {features}\nBest params: {params}")
+        print('Adding shot probability/expected points columns to dataset')
+        df_exp_pts = add_exp_pts_col(base_df, features, ['fgm'], params)
+        
+        df_exp_pts.to_csv(SHOTS_EXP_PTS_FILE, index=False)
+    else:
+        print('Loading existing expected points dataset')
+        df_exp_pts = pd.read_csv(SHOTS_EXP_PTS_FILE)
