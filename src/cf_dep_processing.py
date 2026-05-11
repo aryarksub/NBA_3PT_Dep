@@ -7,6 +7,7 @@ from pbp_shot_processing import FINAL_FILE
 from shot_prob_model import xgb_classifier, train_xgb_clf
 
 SHOTS_EXP_PTS_FILE = os.path.join('data', 'exp_pts.csv')
+ALT_SHOTS_EXP_PTS_FILE = os.path.join('data', 'alt_exp_pts.csv')
 CF_DEP_PLAYER_FILE = os.path.join('data', 'cf_dep_player.csv')
 CF_DEP_TEAM_FILE = os.path.join('data', 'cf_dep_team.csv')
 
@@ -73,6 +74,18 @@ def create_base_cf_dep_df(df, group=['player_id', 'team_id']):
 
     return final_ep
 
+def add_alt_exp_pts_cols(orig_df):
+    df = orig_df.copy()
+    cf_dep_player_df = pd.read_csv(CF_DEP_PLAYER_FILE)
+    
+    # Add naive expected points calculation: avg number of points from all 2PT shots for that player
+    print('Adding naive expected points column')
+    lookup = cf_dep_player_df[['player_id', 'ep_2pt']].copy()
+    df = df.merge(lookup, on='player_id', how='left')
+    df = df.rename(columns={'ep_2pt': 'exp_pts_naive'})
+
+    return df
+
 
 if __name__=='__main__':
     create_exp_pts_df = False
@@ -97,7 +110,7 @@ if __name__=='__main__':
 
     if create_ep_df or not os.path.exists(CF_DEP_PLAYER_FILE):
         print('Creating base player counterfactual dependence dataset')
-        base_cf_def_player_df = create_base_cf_dep_df(df_exp_pts, group=['player_id', 'team_id'])
+        base_cf_def_player_df = create_base_cf_dep_df(df_exp_pts, group=['player_id'])#, 'team_id'])
 
         print('Creating base team counterfactual dependence dataset')
         base_cf_def_team_df = create_base_cf_dep_df(df_exp_pts, group=['team_id'])
@@ -110,3 +123,15 @@ if __name__=='__main__':
 
         print('Loading team counterfactual dependence dataset')
         cf_dep_team_df = pd.read_csv(CF_DEP_TEAM_FILE)
+
+    modify_exp_pts_df = True
+
+    if modify_exp_pts_df or not os.path.exists(ALT_SHOTS_EXP_PTS_FILE):
+        print('Adding additional expected points columns to dataset')
+        alt_df_exp_pts = add_alt_exp_pts_cols(df_exp_pts)
+
+        alt_df_exp_pts.to_csv(ALT_SHOTS_EXP_PTS_FILE, index=False)
+    else:
+        print('Loading expected points dataset (with alternative shot choices)')
+        alt_df_exp_pts = pd.read_csv(ALT_SHOTS_EXP_PTS_FILE)
+        
