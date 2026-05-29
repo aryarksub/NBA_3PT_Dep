@@ -82,7 +82,14 @@ def add_alt_exp_pts_cols(orig_df):
     print('Adding naive expected points column')
     lookup = cf_dep_player_df[['player_id', 'ep_2pt']].copy()
     df = df.merge(lookup, on='player_id', how='left')
-    df = df.rename(columns={'ep_2pt': 'exp_pts_naive'})
+
+    df['exp_pts_naive'] = np.where(
+        df['3pt'] == 1,
+        df['ep_2pt'],
+        df['expected_points']
+    )
+
+    df = df.drop(columns=['ep_2pt'])
 
     return df
 
