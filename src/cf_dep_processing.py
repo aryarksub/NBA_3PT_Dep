@@ -15,7 +15,7 @@ CF_DEP_TEAM_FILE = os.path.join('data', 'cf_dep_team.csv')
 def create_base_df():
     full_df = pd.read_csv(FINAL_FILE)
     keep_features = [
-        "game_id", "player_id", "team_id", "period", "seconds_rem", "3pt", "fgm", 
+        "game_id", "player_id", "team_id", "period", "seconds_rem", "new_3pt", "fgm", 
         "streak", "shot_dist", "shot_clock", "close_def_id", "close_def_team_id", 
         "close_def_dist", "avg_def_dist", "def_hull_area", "shooter_x", "shooter_y",
         "tmate1_x", "tmate1_y", "tmate2_x", "tmate2_y", "tmate3_x", "tmate3_y", 
@@ -23,7 +23,8 @@ def create_base_df():
         "def3_y", "def4_x", "def4_y", "def5_x", "def5_y", "team_id_home",
         "team_id_away", "home"
     ]
-    df_sub = full_df[keep_features]
+    df_sub = full_df[keep_features].copy()
+    df_sub = df_sub.rename(columns={"new_3pt": "3pt"})
     return df_sub
 
 def add_exp_pts_col(df, model_in, model_out, model_params):
@@ -117,7 +118,7 @@ if __name__=='__main__':
 
     if create_ep_df or not os.path.exists(CF_DEP_PLAYER_FILE):
         print('Creating base player counterfactual dependence dataset')
-        base_cf_def_player_df = create_base_cf_dep_df(df_exp_pts, group=['player_id'])#, 'team_id'])
+        base_cf_def_player_df = create_base_cf_dep_df(df_exp_pts, group=['player_id'])
 
         print('Creating base team counterfactual dependence dataset')
         base_cf_def_team_df = create_base_cf_dep_df(df_exp_pts, group=['team_id'])

@@ -487,6 +487,66 @@ def add_home_team_info(shot_df_orig, save_file=True):
 
     return shots
 
+def update_3pt_col(shot_df_orig, save_file=True):
+    """
+    Given a shot log dataset, update the 3pt column based on shot distance. This column was previously set
+    based on shot annotations and may not correspond directly to the measured shot distance when combining
+    play-by-play data with moment data.
+
+    Args:
+        shot_df_orig (pd.DataFrame): Shot log DataFrame
+        save_file (bool, optional): True if curated dataset should be saved to a CSV file;
+         False otherwise. Defaults to True.
+
+    Returns:
+        pd.DataFrame: Shot log dataset with updated 3pt column
+    """
+    shots = shot_df_orig.copy()
+
+    HOOP_Y = 25
+
+    def is_two_pointer(x, y, hoop_x):
+        """
+        Determine whether the given shot is a two-pointer or three-pointer.
+
+        Args:
+            x (float): Horizontal (x) coordinate of shot (0 to 94)
+            y (float): Vertical (y) coordinate of shot (0 to 50)
+            hoop_x (float): Horizontal (x) coordinate of hoop (5.25 for left side of court; 88.75 for right side)
+
+        Returns:
+            bool: True if shot is a two-pointer; False otherwise (three-pointer)
+        """
+
+        # Horizontal distance from the hoop
+        dx = abs(x - hoop_x)
+
+        # Corner 3
+        if dx >= 22 and y <= 14:
+            return False
+
+        # Arc 3
+        dist = np.sqrt(dx**2 + (y - HOOP_Y)**2)
+        if dist >= 23.75:
+            return False
+
+        return True
+
+    shots['new_3pt'] = shots.apply(
+        lambda r: int(
+            not is_two_pointer(
+                r['shooter_x'],
+                r['shooter_y'],
+                5.25 if r['shooter_x'] < 47 else 88.75
+            )
+        ),
+        axis=1
+    )
+    
+    if save_file:
+        shots.to_csv(FINAL_FILE, index=False)
+
+    return shots
 
 if __name__=='__main__':
     redo = False
@@ -521,7 +581,10 @@ if __name__=='__main__':
 
     if not os.path.exists(FINAL_FILE) or redo:
         print('Adding home team information to dataset')
-        final_df = add_home_team_info(shot_history_def_df)
+        shot_df_with_home_team = add_home_team_info(shot_history_def_df)
+
+        print('Updating 3pt column based on shot distance')
+        final_df = update_3pt_col(shot_df_with_home_team)
     else:
         print('Loading final dataset')
         final_df = pd.read_csv(FINAL_FILE)
