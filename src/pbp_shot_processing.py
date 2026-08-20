@@ -15,6 +15,10 @@ SHOT_HISTORY_FILE = os.path.join('data', 'pbp_shots_history.csv')
 SHOT_HISTORY_DEF_FILE = os.path.join('data', 'pbp_shots_history_with_def.csv')
 FINAL_FILE = os.path.join('data', 'pbp_final.csv')
 
+# Rows per chunk when streaming the full play-by-play file. Caps peak memory during the
+# initial filter; has no effect on the result.
+CHUNK_ROWS = 500_000
+
 def get_stored_moment_game_ids():
     """
     Get the game IDs for all games with moment data that have been stored
@@ -39,17 +43,26 @@ def create_pbp_range_dataset(start_date, end_date, exclude_non_stored=True, save
     Returns:
         pd.DataFrame: Filtered shots play-by-play DataFrame.
     """
-    pbp_df = pd.read_csv(FULL_PBP_FILE)
+    # The full file is ~2.25 GB / 13.6M rows, and both filters below discard the large
+    # majority of it. Reading it whole needs several GB of RAM and dies on a loaded machine,
+    # so filter chunk by chunk instead. The surviving rows are identical to a full read.
+    game_ids = get_stored_moment_game_ids() if exclude_non_stored else None
 
-    # if exclude_non_stored, keep only games that have moment DFs stored
-    if exclude_non_stored:
-        # get list of all stored game IDs for moment CSV files
-        game_ids = get_stored_moment_game_ids()
-        pbp_df = pbp_df[pbp_df['game_id'].astype(str).isin(game_ids)]
+    kept = []
+    for chunk in pd.read_csv(FULL_PBP_FILE, chunksize=CHUNK_ROWS):
+        # if exclude_non_stored, keep only games that have moment DFs stored
+        if exclude_non_stored:
+            chunk = chunk[chunk['game_id'].astype(str).isin(game_ids)]
+        # filter for only shot-related plays (made/missed shots)
+        chunk = chunk[chunk['eventmsgtype'].isin([1, 2])]
+        if len(chunk):
+            kept.append(chunk)
 
-    # filter for only shot-related plays (made/missed shots)
-    pbp_shots_df = pbp_df[pbp_df['eventmsgtype'].isin([1,2])]
-    
+    pbp_shots_df = (
+        pd.concat(kept, ignore_index=True) if kept
+        else pd.read_csv(FULL_PBP_FILE, nrows=0)
+    )
+
     games_df = pd.read_csv(GAME_INFO_FILE)
     games_df['game_date'] = pd.to_datetime(games_df['game_date'])
     
@@ -532,6 +545,17 @@ def update_3pt_col(shot_df_orig, save_file=True):
 
         return True
 
+    # Shots whose release moment was never located have NaN shooter coordinates, and every
+    # defender feature is NaN with them. is_two_pointer falls through to True on NaN, so
+    # leaving them in silently labels each one a two-pointer -- and two-pointers carry a
+    # dependence delta of exactly zero, so they would pad the dep_share denominator with
+    # shots that were never measured. Drop them instead.
+    n_unmatched = int(shots['shooter_x'].isna().sum())
+    if n_unmatched:
+        print(f'Dropping {n_unmatched} shots with no matched release moment '
+              f'({n_unmatched / len(shots):.2%} of {len(shots)})')
+        shots = shots[shots['shooter_x'].notna()].copy()
+
     shots['new_3pt'] = shots.apply(
         lambda r: int(
             not is_two_pointer(
@@ -549,6 +573,8 @@ def update_3pt_col(shot_df_orig, save_file=True):
     return shots
 
 if __name__=='__main__':
+    # Set True only to force a full rebuild; each one costs ~5 h of defender-feature
+    # extraction over the 531-game sample.
     redo = False
 
     if not os.path.exists(PBP_15_16_FILE) or redo:
