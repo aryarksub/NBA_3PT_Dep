@@ -103,7 +103,6 @@ if __name__ == '__main__':
             print('Using best features found based on previous runs:', features[1:], file=f)
             best_features = features[1:]
 
-        best_features = ['seconds_rem', 'shot_dist', 'shot_clock', 'close_def_dist', 'home']
         param_space_dict = {
             "n_estimators" : range(100, 151),
             "learning_rate" : stats.uniform(loc=0.05, scale=0.1),

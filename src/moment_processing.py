@@ -37,10 +37,13 @@ def create_moment_df(fname_7z, save_to_csv=True):
 
     game_id = data['gameid']
     save_file = os.path.join(MOMENT_DATA_DIR, f'{game_id}.csv')
-    # NOTE: Uncomment to avoid repeating dataframe creation for games that already have been processed
-    # if os.path.exists(save_file):
-    #     shutil.rmtree(TEMP_LOGS_DIR)
-    #     return
+    # Skip games already converted, so an interrupted bulk run can resume. Note this still
+    # pays the 7z extraction and JSON parse, because game_id is only known after loading;
+    # it saves the moment loop, which is the bulk of the per-game cost.
+    # Delete the game's CSV to force regeneration.
+    if os.path.exists(save_file):
+        shutil.rmtree(TEMP_LOGS_DIR)
+        return
 
     data_rows = []
     df_cols = [
@@ -76,10 +79,22 @@ def create_moment_df(fname_7z, save_to_csv=True):
     df_no_dup = df.drop_duplicates(subset=['period', 'clock'], keep='first')
     df_no_dup_sort = df_no_dup.sort_values(by=['period', 'clock'], ascending=[True, False])
 
+    if df_no_dup_sort.empty:
+        # Writing an empty CSV would still register this game in get_stored_moment_game_ids(),
+        # so its shots would enter the pipeline with no tracking data and no way to recover
+        # any features. Leave no file, and the game is excluded upstream instead.
+        print(f'{fname_7z} produced no usable moments; not writing a moment file')
+        return df_no_dup_sort
+
     if save_to_csv:
         os.makedirs(MOMENT_DATA_DIR, exist_ok=True)
         save_file = os.path.join(MOMENT_DATA_DIR, f'{game_id}.csv')
-        df_no_dup_sort.to_csv(save_file, index=False)
+        # Write to a temp file and rename, so a run interrupted mid-write cannot leave a
+        # truncated CSV behind. The resume check above tests only for existence, so a partial
+        # file would otherwise be treated as complete and silently corrupt the sample.
+        tmp_file = save_file + '.tmp'
+        df_no_dup_sort.to_csv(tmp_file, index=False)
+        os.replace(tmp_file, save_file)
     
     return df_no_dup_sort
 
