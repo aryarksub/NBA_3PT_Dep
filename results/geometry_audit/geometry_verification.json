@@ -1,0 +1,94 @@
+{
+  "source": "https://official.nba.com/rule-no-1-court-dimensions-equipment/",
+  "saved_shots": 88694,
+  "current_three_count": 19242,
+  "corrected_geometric_three_count": 24306,
+  "two_to_three": 5064,
+  "three_to_two": 0,
+  "fraction_affected": 0.05709518118474756,
+  "affected_recorded_as_three_in_pbp": 4892,
+  "affected_recorded_as_two_in_pbp": 172,
+  "pipeline_and_alternative_classifiers_agree": true,
+  "saved_labels_reproduced_exactly": true,
+  "boundary_convention": "Idealized point coordinates; points on the line are twos; no foot-position adjudication.",
+  "candidate_counts": [
+    {
+      "strategy": "near_k000",
+      "substitutes": 18975,
+      "outside_correct_boundary": 296,
+      "fraction": 0.015599472990777338
+    },
+    {
+      "strategy": "near_k050",
+      "substitutes": 18954,
+      "outside_correct_boundary": 296,
+      "fraction": 0.015616756357497099
+    },
+    {
+      "strategy": "near_k075",
+      "substitutes": 18820,
+      "outside_correct_boundary": 327,
+      "fraction": 0.017375132837407013
+    },
+    {
+      "strategy": "near_k100",
+      "substitutes": 16433,
+      "outside_correct_boundary": 1066,
+      "fraction": 0.0648694699689649
+    },
+    {
+      "strategy": "best_q100_l000",
+      "substitutes": 18975,
+      "outside_correct_boundary": 9,
+      "fraction": 0.0004743083003952569
+    },
+    {
+      "strategy": "best_q095_l000",
+      "substitutes": 18975,
+      "outside_correct_boundary": 33,
+      "fraction": 0.0017391304347826088
+    },
+    {
+      "strategy": "best_q090_l000",
+      "substitutes": 18975,
+      "outside_correct_boundary": 61,
+      "fraction": 0.0032147562582345193
+    },
+    {
+      "strategy": "best_q100_l025",
+      "substitutes": 18975,
+      "outside_correct_boundary": 42,
+      "fraction": 0.0022134387351778655
+    },
+    {
+      "strategy": "best_q095_l025",
+      "substitutes": 18975,
+      "outside_correct_boundary": 94,
+      "fraction": 0.004953886693017127
+    },
+    {
+      "strategy": "best_q090_l025",
+      "substitutes": 18975,
+      "outside_correct_boundary": 107,
+      "fraction": 0.005638998682476943
+    },
+    {
+      "strategy": "best_q100_l050",
+      "substitutes": 18975,
+      "outside_correct_boundary": 171,
+      "fraction": 0.009011857707509882
+    },
+    {
+      "strategy": "best_q095_l050",
+      "substitutes": 18975,
+      "outside_correct_boundary": 141,
+      "fraction": 0.007430830039525692
+    },
+    {
+      "strategy": "best_q090_l050",
+      "substitutes": 18975,
+      "outside_correct_boundary": 177,
+      "fraction": 0.009328063241106719
+    }
+  ]
+}
