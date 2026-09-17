@@ -7,7 +7,9 @@ Secondary focus: Behavioral analysis of defenses when reacting to hot-hand-relat
 
 Kondur, A., & Shen, W. (2026). Statistical analysis of NBA defensive responses to hot-hand streaks. Journal of Sports Analytics, 12. https://doi.org/10.1177/22150218261458601
 
-See [IMPLEMENTATION.md](IMPLEMENTATION.md) for a detailed walkthrough of what each script does.
+See [behavioral dependence](docs/behavioral_dependence.md) for the implemented alternatives,
+[the evaluation](docs/dependence_search_evaluation.md) for results, and
+[the figure catalog](docs/figures.md) for final plots and regeneration commands.
 
 ## Setup
 
@@ -20,7 +22,7 @@ pip install -r requirements.txt
 ## Data
 
 Play-by-play comes from the Kaggle `wyattowalsh/basketball` dump. Requires a Kaggle API token at
-`$env:USERPROFILE\.kaggle\kaggle.json` (Kaggle account → Settings → Create New Token).
+`$env:USERPROFILE\.kaggle\kaggle.json` (Kaggle account â†’ Settings â†’ Create New Token).
 
 ```powershell
 pip install kaggle
@@ -33,7 +35,7 @@ Get-ChildItem data\*.zip | ForEach-Object { Expand-Archive $_ -DestinationPath d
 
 SportVU optical tracking logs (2015-16, one `.7z` archive per game) are not on Kaggle. They come from
 [linouk23/NBA-Player-Movements](https://github.com/linouk23/NBA-Player-Movements/tree/master/data/2016.NBA.Raw.SportVU.Game.Logs)
-— 636 games, ~3.6 GB, all falling inside the 2015-10-01 to 2016-01-31 window the pipeline uses.
+â€” 636 games, ~3.6 GB, all falling inside the 2015-10-01 to 2016-01-31 window the pipeline uses.
 
 The number of archives in `data/game_logs/` sets the sample size, since only games with tracking data
 are processed. For a quick end-to-end run, fetch a handful:
@@ -61,14 +63,14 @@ data/
   play_by_play.csv
   game_info.csv
   game.csv
-  game_logs/      # .7z tracking archives, flat — do not unpack
+  game_logs/      # .7z tracking archives, flat â€” do not unpack
   moment_data/    # generated, one CSV per game (~41 MB each)
   temp_logs/      # scratch, created and deleted per archive
 ```
 
 Leave the `.7z` files compressed. `moment_processing.py` opens each one with `py7zr`, extracts the
 JSON to `data/temp_logs/`, converts it, and deletes the scratch directory. Keep the archives flat in
-`data/game_logs/` — subdirectories are not handled.
+`data/game_logs/` â€” subdirectories are not handled.
 
 ## Running
 
@@ -86,3 +88,25 @@ python src\experiments\def_metric_heat_reg.py
 
 Each stage skips work whose output file already exists. Delete that file, or set `redo = True` in the
 script's `__main__` block, to force a rebuild. Results are written to `results/` and `plots/`.
+
+
+## Nearest and best feasible alternatives
+
+Run the data pipeline above, then run these stages from the repository root:
+
+```text
+python src/experiments/cf_dependence.py
+python src/experiments/cf_ci_impact.py
+python src/experiments/cf_dependence_figures.py
+python src/experiments/cf_alternatives.py
+python src/experiments/cf_alternatives_figures.py
+python -m pytest tests -q
+```
+
+The search defaults are an 8 ft radius and 0.25 ft spacing. Raw data, fitted models,
+search checkpoints, and local working notes are excluded from Git. Final plots and result
+tables are versioned. See the figure catalog for the optional full radius/resolution sweep.
+Existing processed data from an older geometry implementation must be regenerated before
+running the alternatives; deleting only the alternative output does not update observed labels.
+
+Further tests of incremental information are documented in [the dependence validation report](docs/dependence_validation.md), with matched comparisons, forward-time prediction, and shuffled-alternative placebos.

@@ -72,3 +72,42 @@ def test_raises_when_a_row_would_go_unpredicted(monkeypatch):
     monkeypatch.setattr(cross_fit, 'make_splits', truncated_splits)
     with pytest.raises(ValueError, match='out-of-fold'):
         cross_fit.cross_fitted_probabilities(df, FEATURES, 'fgm', PARAMS, n_splits=3)
+
+
+def test_fold_models_are_returned_and_aligned():
+    df = noise_frame()
+    p, models, fold_of_row = cross_fitted_probabilities(
+        df, FEATURES, 'fgm', PARAMS, n_splits=5, return_models=True
+    )
+    assert len(models) == 5
+    assert len(fold_of_row) == len(df)
+    assert set(np.unique(fold_of_row)) == set(range(5))
+
+
+def test_the_recorded_fold_model_reproduces_the_out_of_fold_probability():
+    """
+    The reason this exists: a counterfactual must be scored by the same fold model that
+    produced its shot's own out-of-fold probability. Scoring it with a model refit on all
+    data would make the observed side out-of-fold and the counterfactual side in-sample,
+    reintroducing exactly the leak cross-fitting removes.
+    """
+    df = noise_frame()
+    p, models, fold_of_row = cross_fitted_probabilities(
+        df, FEATURES, 'fgm', PARAMS, n_splits=5, return_models=True
+    )
+    for i in [0, 17, 123, len(df) - 1]:
+        again = models[fold_of_row[i]].predict_proba(df[FEATURES].iloc[[i]])[0, 1]
+        assert np.isclose(again, p[i]), f'row {i}: {again} != {p[i]}'
+
+
+def test_default_return_is_unchanged_by_the_new_parameter():
+    """Existing callers unpack a bare array; adding return_models must not break them."""
+    df = noise_frame()
+    bare = cross_fitted_probabilities(df, FEATURES, 'fgm', PARAMS, n_splits=5)
+    assert isinstance(bare, np.ndarray)
+    assert bare.shape == (len(df),)
+
+    p, _, _ = cross_fitted_probabilities(
+        df, FEATURES, 'fgm', PARAMS, n_splits=5, return_models=True
+    )
+    assert np.allclose(bare, p), 'predictions must not depend on whether models are returned'

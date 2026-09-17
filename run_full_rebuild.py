@@ -27,6 +27,9 @@ STAGES = [
     ('cf_dependence       (metric + CIs)',      os.path.join('src', 'experiments', 'cf_dependence.py')),
     ('cf_ci_impact        (what CIs change)',   os.path.join('src', 'experiments', 'cf_ci_impact.py')),
     ('seed_sweep          (fold uncertainty)',  os.path.join('src', 'experiments', 'cf_dependence_seed_sweep.py')),
+    ('figures             (docs/figures.md)',   os.path.join('src', 'experiments', 'cf_dependence_figures.py')),
+    ('cf_alternatives     (strategy sweep)',    os.path.join('src', 'experiments', 'cf_alternatives.py')),
+    ('cf_alternatives_figs',                    os.path.join('src', 'experiments', 'cf_alternatives_figures.py')),
 ]
 
 

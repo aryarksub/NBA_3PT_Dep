@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 from scipy.spatial import ConvexHull
+from nba_geometry import is_three_vec
 
 from moment_processing import MOMENT_DATA_DIR
 
@@ -516,35 +517,6 @@ def update_3pt_col(shot_df_orig, save_file=True):
     """
     shots = shot_df_orig.copy()
 
-    HOOP_Y = 25
-
-    def is_two_pointer(x, y, hoop_x):
-        """
-        Determine whether the given shot is a two-pointer or three-pointer.
-
-        Args:
-            x (float): Horizontal (x) coordinate of shot (0 to 94)
-            y (float): Vertical (y) coordinate of shot (0 to 50)
-            hoop_x (float): Horizontal (x) coordinate of hoop (5.25 for left side of court; 88.75 for right side)
-
-        Returns:
-            bool: True if shot is a two-pointer; False otherwise (three-pointer)
-        """
-
-        # Horizontal distance from the hoop
-        dx = abs(x - hoop_x)
-
-        # Corner 3
-        if dx >= 22 and y <= 14:
-            return False
-
-        # Arc 3
-        dist = np.sqrt(dx**2 + (y - HOOP_Y)**2)
-        if dist >= 23.75:
-            return False
-
-        return True
-
     # Shots whose release moment was never located have NaN shooter coordinates, and every
     # defender feature is NaN with them. is_two_pointer falls through to True on NaN, so
     # leaving them in silently labels each one a two-pointer -- and two-pointers carry a
@@ -556,17 +528,8 @@ def update_3pt_col(shot_df_orig, save_file=True):
               f'({n_unmatched / len(shots):.2%} of {len(shots)})')
         shots = shots[shots['shooter_x'].notna()].copy()
 
-    shots['new_3pt'] = shots.apply(
-        lambda r: int(
-            not is_two_pointer(
-                r['shooter_x'],
-                r['shooter_y'],
-                5.25 if r['shooter_x'] < 47 else 88.75
-            )
-        ),
-        axis=1
-    )
-    
+    shots['new_3pt'] = is_three_vec(shots[['shooter_x', 'shooter_y']].to_numpy()).astype(int)
+
     if save_file:
         shots.to_csv(FINAL_FILE, index=False)
 

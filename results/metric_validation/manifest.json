@@ -1,0 +1,42 @@
+{
+  "scope": "matched controls, forward-time prediction, and conditional alternative shuffling",
+  "raw_data_distributed": false,
+  "input_sha256": {
+    "data/alt_exp_pts.csv": "690da5881c7afa01e0d9e5ef36ba085194a904c3c4e9bd5dc7f9931ad53c6479",
+    "data/pbp_final.csv": "8616e6347e27809943c44c91e4afd6d65b742def877e314c9afc2be118c77a77",
+    "data/cf_alternatives_shots.csv": "2b88efcbde5b6f438d2d2a336cb6e6d453b9ad038a8659250d3fa0b6527b59fe"
+  },
+  "source_sha256": {
+    "src/metric_validation.py": "25d709ca1aa4be41df02c0224c0ccba67ab8edfdaf32929b0a7c2fea4b3ccaa0",
+    "src/experiments/prepare_temporal_validation.py": "2eacea34aa3304c8dc555a1b49d156a08c54c59b9069ac20369e5b73e7e074a3",
+    "src/experiments/dependence_validation.py": "ee2fa92bbf0e26432ced037736ee495b7ccfd569c1528359e67e10502444e694",
+    "src/experiments/dependence_validation_figures.py": "76b8ae5b285ef89745b05d67076bb21b07c22ae491d1e6dde0abd9a808308233"
+  },
+  "artifact_sha256": {
+    "plots/metric_validation/alternative_placebo.png": "a3ee029abc978b20834e949e1b54fbb7dce00971408e1a75e898f8ad9df47489",
+    "plots/metric_validation/alternative_placebo.svg": "cbd7983b5cb30aac64ab09093256e20b5ba783194c51f04df31ca5f7a9afb29a",
+    "plots/metric_validation/attempt_rate_bands.png": "5c483143e7f30ac452c3a35bdf865ce470ee5a7aaadff99d486a2b1040a3874e",
+    "plots/metric_validation/attempt_rate_bands.svg": "1365bc9e6dfb084f725f27791b4b571a860ad436d5df56a68c4783ec9de3c96d",
+    "plots/metric_validation/forward_prediction.png": "d94fecdb0a9b848b45120a2050e4dee1646abdf5aab72a66f4f035d920d70f17",
+    "plots/metric_validation/forward_prediction.svg": "48612839ee3eec9387569cce24c2704190701ccba22d8da38cfd1b86aac9eeef",
+    "plots/metric_validation/forward_residual_repeatability.png": "e921b40535f73350008cd8bf04f15ece30d5f7c0602cfebe6b86e2cef50d79ba",
+    "plots/metric_validation/forward_residual_repeatability.svg": "fb5b93a7826801aa5550b42ed1028cd274b2b66835bfe721092c4360a0fbe7d3",
+    "plots/metric_validation/matched_player_pairs.png": "455e057c2506c4b3a26e57ea5f14b0bc9ed1989e9b397fa573474687c298a78b",
+    "plots/metric_validation/matched_player_pairs.svg": "8562f7ecb1709611b25c5d6773e1805f8d19346711b6a50c330f236f49a33e60",
+    "plots/metric_validation/matched_strategy_summary.png": "ba9409eef6e593196e52a591d11e366836344353325d1240f6947c46fd46e59c",
+    "plots/metric_validation/matched_strategy_summary.svg": "b11563cc0ef50005cbd1a3ad571b8355b639fffaa4e485fcadf067bfcb7001b2",
+    "results/metric_validation/attempt_bands.csv": "17aa782d32b41324dcfcd87e2f0feaa34a00f1599abce48977c6920c49647049",
+    "results/metric_validation/design.json": "3853414c69a039dc72325858b4b0fdfbcdff2c110528b9d5c2c3d291d7ed5c5e",
+    "results/metric_validation/forecast_benchmark.csv": "4c7b34bbb525a44de0bd361749031ce9f73a39fe41aaa8f534e392875df62c77",
+    "results/metric_validation/matched_pairs.csv": "2199d0f02b6c09c817a84d1f39c4f0ed70a7b4cff8d52aa6c8d95c2e3af451e3",
+    "results/metric_validation/matched_players.csv": "85f3bccc9086c9d22ff94a3d1ac4acd1651008a4ecfe9c55fde8dcefad66c270",
+    "results/metric_validation/matched_summary.csv": "11c1259cf79c8daf25e303cc844532aeb9add58c7944f0a4b01049a03ac65c91",
+    "results/metric_validation/period_players.csv": "06774cadbc95307b6180eaa1392f3e8db888440107f3ddc1a01b5ca9a4394e7e",
+    "results/metric_validation/periods.csv": "c8990a17967608792f50c60da9b5c2a97176eccfc47fcee03749eafb10342e5a",
+    "results/metric_validation/placebo_draws.csv": "5a7d3f60eb5c6aaae09c19a0ce0517516491a62df2b27487751c2842a00c46de",
+    "results/metric_validation/placebo_summary.csv": "7310d35fa6bb1b78cd73c988f692e6fa0167b1ab9f57eb4b6c713b0a307512f9",
+    "results/metric_validation/prediction_summary.csv": "b7455e016b3f521fa0b2e256e1e0b16b5e60fbc29cf27377bc77cc42e10fbc85",
+    "results/metric_validation/predictions.csv": "ceca4ad0542b2d9efeb6c95a275a75e4de2dd6c2530ff500e01374319abe5767",
+    "results/metric_validation/temporal_residuals.csv": "5abcab121b1e8f97a6a2af88df32ad0ad5b4775bdb58386e4344fbbd364bc2f6"
+  }
+}

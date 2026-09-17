@@ -1,0 +1,43 @@
+{
+  "date_fractions": [
+    0.4,
+    0.3,
+    0.3
+  ],
+  "matching_rate_caliper": 0.02,
+  "matching_ep_caliper": 0.05,
+  "matched_game_bootstraps": 500,
+  "future_player_bootstraps": 1000,
+  "placebo_draws": 500,
+  "ridge_alpha": 1,
+  "random_seeds": {
+    "matched_bootstrap": 107,
+    "forecast_bootstrap": 902,
+    "placebo": 711
+  },
+  "placebo_cutoffs": {
+    "make_probability": [
+      0.35,
+      0.45,
+      0.55,
+      0.65
+    ],
+    "shot_distance_ft": [
+      23.75,
+      26,
+      30
+    ],
+    "closest_defender_ft": [
+      4,
+      8
+    ],
+    "shot_clock_seconds": [
+      4,
+      10
+    ]
+  },
+  "holm_family": "14 strategies, separately for residual repeatability and forecast gain",
+  "primary_outcome": "future realized points per tracked FGA, source PBP shot values",
+  "shot_model_training": "early block only; early predictions cross-fitted by game",
+  "predictor_fit": "early features -> middle outcome; evaluated middle features -> late outcome"
+}

@@ -47,8 +47,8 @@ SEEDS = [0, 1, 2, 3, 4]
 RESULTS_DIR = 'results'
 OUT_FILE = os.path.join(RESULTS_DIR, 'cf_dependence_seed_sweep.csv')
 
-MIN_SHOTS = 10
-MIN_3PA = 3
+MIN_SHOTS = 50
+MIN_3PA = 10
 
 if not os.path.exists(RESULTS_DIR):
     os.makedirs(RESULTS_DIR)

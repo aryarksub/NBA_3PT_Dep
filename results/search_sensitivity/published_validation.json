@@ -1,0 +1,67 @@
+{
+  "near_k000": {
+    "substitutes": 23473,
+    "invalid_threes": 0,
+    "maximum_travel": 7.991113714526905
+  },
+  "near_k050": {
+    "substitutes": 23391,
+    "invalid_threes": 0,
+    "maximum_travel": 7.998755117873031
+  },
+  "near_k075": {
+    "substitutes": 22982,
+    "invalid_threes": 0,
+    "maximum_travel": 7.9994578274405574
+  },
+  "near_k100": {
+    "substitutes": 18980,
+    "invalid_threes": 0,
+    "maximum_travel": 7.999828301607479
+  },
+  "best_q100_l000": {
+    "substitutes": 23473,
+    "invalid_threes": 0,
+    "maximum_travel": 7.999983732208458
+  },
+  "best_q095_l000": {
+    "substitutes": 23473,
+    "invalid_threes": 0,
+    "maximum_travel": 7.9999449504168485
+  },
+  "best_q090_l000": {
+    "substitutes": 23473,
+    "invalid_threes": 0,
+    "maximum_travel": 7.999981915160811
+  },
+  "best_q100_l025": {
+    "substitutes": 23473,
+    "invalid_threes": 0,
+    "maximum_travel": 7.999984798598061
+  },
+  "best_q095_l025": {
+    "substitutes": 23473,
+    "invalid_threes": 0,
+    "maximum_travel": 7.9999449504168485
+  },
+  "best_q090_l025": {
+    "substitutes": 23473,
+    "invalid_threes": 0,
+    "maximum_travel": 7.99994615434379
+  },
+  "best_q100_l050": {
+    "substitutes": 23473,
+    "invalid_threes": 0,
+    "maximum_travel": 7.999990284444102
+  },
+  "best_q095_l050": {
+    "substitutes": 23473,
+    "invalid_threes": 0,
+    "maximum_travel": 7.999983764364769
+  },
+  "best_q090_l050": {
+    "substitutes": 23473,
+    "invalid_threes": 0,
+    "maximum_travel": 7.999894756632742
+  }
+}

@@ -1,7 +1,6 @@
 import os
 import sys
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -15,10 +14,8 @@ from dependence import (
     clustered_bootstrap_dependence,
     signal_to_noise,
 )
-import plots
 
 RESULTS_DIR = 'results'
-CF_DEP_PLOTS_DIR = os.path.join(plots.PLOTS_DIR, 'cf_dependence')
 
 RESULTS_FILES = {
     'player': os.path.join(RESULTS_DIR, 'cf_dependence_player.csv'),
@@ -39,7 +36,7 @@ MIN_3PA = 10
 N_BOOT = 1000
 PRIMARY_STAT = 'dep_share'
 
-for directory in (RESULTS_DIR, CF_DEP_PLOTS_DIR):
+for directory in (RESULTS_DIR,):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
@@ -54,56 +51,6 @@ def build_level(shots_df, group, n_boot=N_BOOT, stat=PRIMARY_STAT):
                                 n_boot=n_boot, random_state=0)
 
     return point.merge(boot, on=group, how='left')
-
-
-def plot_dependence_distribution(df, fname, x_label='Behavioral dependence (share of EP)'):
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.hist(df[PRIMARY_STAT].dropna(), bins=40, color='#3b4a7a', edgecolor='white')
-    ax.axvline(0, color='#8f5560', linestyle='--', linewidth=1.5)
-    ax.set_xlabel(x_label, fontsize=14)
-    ax.set_ylabel('Players', fontsize=14)
-    fig.tight_layout()
-    fig.savefig(fname, dpi=200)
-    plt.close(fig)
-
-
-def plot_caterpillar(df, fname, label_col='player_id', top_n=20):
-    """Highest and lowest dependence, with bootstrap intervals."""
-    ranked = df.dropna(subset=[PRIMARY_STAT]).sort_values(PRIMARY_STAT)
-    sub = pd.concat([ranked.head(top_n), ranked.tail(top_n)])
-    sub = sub[~sub.index.duplicated(keep='first')]
-
-    y = np.arange(len(sub))
-    lo = sub[PRIMARY_STAT] - sub[f'{PRIMARY_STAT}_ci_lower']
-    hi = sub[f'{PRIMARY_STAT}_ci_upper'] - sub[PRIMARY_STAT]
-
-    fig, ax = plt.subplots(figsize=(8, 0.32 * len(sub) + 2))
-    ax.errorbar(sub[PRIMARY_STAT], y, xerr=[lo, hi], fmt='o', color='#3b4a7a',
-                ecolor='#9aa3bd', capsize=3, markersize=4)
-    ax.axvline(0, color='#8f5560', linestyle='--', linewidth=1.5)
-    ax.set_yticks(y)
-    ax.set_yticklabels(sub[label_col].astype(str), fontsize=8)
-    ax.set_xlabel('Behavioral dependence (share of EP)', fontsize=14)
-    fig.tight_layout()
-    fig.savefig(fname, dpi=200)
-    plt.close(fig)
-
-
-def plot_vs_3pa_rate(df, fname):
-    """Dependence against attempt rate. If these were the same measure the project has no thesis."""
-    sub = df.dropna(subset=[PRIMARY_STAT, '3pa_rate'])
-    rho = sub[PRIMARY_STAT].corr(sub['3pa_rate'], method='spearman')
-
-    fig, ax = plt.subplots(figsize=(7, 6))
-    ax.scatter(sub['3pa_rate'], sub[PRIMARY_STAT], s=18, alpha=0.6, color='#3b4a7a')
-    ax.set_xlabel('Three-point attempt rate', fontsize=14)
-    ax.set_ylabel('Behavioral dependence (share of EP)', fontsize=14)
-    ax.set_title(f'Spearman rho = {rho:.3f}', fontsize=13)
-    fig.tight_layout()
-    fig.savefig(fname, dpi=200)
-    plt.close(fig)
-
-    return rho
 
 
 if __name__ == '__main__':
@@ -180,12 +127,9 @@ if __name__ == '__main__':
     game = build_level(shots, ['game_id', 'team_id'], n_boot=200)
     game.to_csv(RESULTS_FILES['game'], index=False)
 
-    # --- figures ------------------------------------------------------------
-    plot_dependence_distribution(qualified, os.path.join(CF_DEP_PLOTS_DIR, 'player_dep_share_dist.png'))
-    plot_caterpillar(qualified, os.path.join(CF_DEP_PLOTS_DIR, 'player_dep_share_caterpillar.png'))
-    plot_caterpillar(team, os.path.join(CF_DEP_PLOTS_DIR, 'team_dep_share_caterpillar.png'),
-                     label_col='team_id', top_n=15)
-    rho = plot_vs_3pa_rate(qualified, os.path.join(CF_DEP_PLOTS_DIR, 'dep_share_vs_3pa_rate.png'))
+    # Figures are not drawn here. src/experiments/cf_dependence_figures.py owns the whole
+    # figure set (see docs/figures.md) and reads the CSVs this script writes.
+    rho = qualified[PRIMARY_STAT].corr(qualified['3pa_rate'], method='spearman')
 
     # --- normalization sensitivity, feeds section 6.7 -----------------------
     corr = qualified[['dep_total', 'dep_per_shot', 'dep_per_3pa', 'dep_share']].corr(method='spearman')
@@ -194,4 +138,5 @@ if __name__ == '__main__':
     print(corr.to_string())
 
     print(f'\nSpearman rho, dependence vs 3PA rate: {rho:.3f}')
-    print(f'Results written to {RESULTS_DIR}/, plots to {CF_DEP_PLOTS_DIR}/')
+    print(f'Results written to {RESULTS_DIR}/. '
+          'Draw figures with src/experiments/cf_dependence_figures.py')

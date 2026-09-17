@@ -216,3 +216,33 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Local working notes, audits, and environment bridge (not repository documentation)
+/AGENTS.md
+/.agents/
+/.codex/
+/IMPLEMENTATION.md
+/SLIDES_pipeline_review.md
+/run_analysis.py
+/docs/plot_audit.md
+/docs/plot_audit_checks.py
+/docs/plot_audit_assets/
+/src/experiments/finalize_search_audit.py
+/src/experiments/prepare_geometry_rebuild.py
+/src/experiments/rebuild_dependence_diagnostics.py
+/push-files.txt
+/stage-nearest-best.ps1
+
+# Raw snapshots, fitted models, candidate checkpoints, and visual QA contact sheets
+/results/geometry_before_*/
+/results/search_sensitivity/legacy/
+/results/search_sensitivity/corrected_15ft_reference/
+/results/search_sensitivity/testtmp*/
+/results/search_sensitivity/*.npz
+/results/search_sensitivity/*.npy
+/results/search_sensitivity/*.ubj
+/results/search_sensitivity/*.metadata.json
+/plots/search_sensitivity/overview.png
+
+/results/metric_validation/cache/
+/results/metric_validation/testtmp*/

@@ -11,7 +11,6 @@ Run after src/experiments/cf_dependence.py.
 import os
 import sys
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -20,10 +19,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), 'src')))
 from cf_dep_processing import ALT_SHOTS_EXP_PTS_FILE
 from ci_impact import ci_impact_summary, rank_intervals
 from dependence import add_shot_dependence, bootstrap_draw_matrix
-import plots
 
 RESULTS_DIR = 'results'
-CF_DEP_PLOTS_DIR = os.path.join(plots.PLOTS_DIR, 'cf_dependence')
 PLAYER_FILE = os.path.join(RESULTS_DIR, 'cf_dependence_player.csv')
 
 SUMMARY_FILE = os.path.join(RESULTS_DIR, 'cf_dependence_ci_impact.csv')
@@ -33,28 +30,9 @@ N_BOOT = 1000
 PRIMARY_STAT = 'dep_share'
 TOP_K = 10
 
-for directory in (RESULTS_DIR, CF_DEP_PLOTS_DIR):
+for directory in (RESULTS_DIR,):
     if not os.path.exists(directory):
         os.makedirs(directory)
-
-
-def plot_rank_intervals(ranks, fname, label_col='player_id', top_n=25):
-    """Each player's plausible league position. Overlap here is the honest picture."""
-    sub = ranks.sort_values('rank_point').head(top_n)
-    y = np.arange(len(sub))
-    lo = sub['rank_point'] - sub['rank_ci_lower']
-    hi = sub['rank_ci_upper'] - sub['rank_point']
-
-    fig, ax = plt.subplots(figsize=(8, 0.32 * len(sub) + 2))
-    ax.errorbar(sub['rank_point'], y, xerr=[lo, hi], fmt='o', color='#3b4a7a',
-                ecolor='#9aa3bd', capsize=3, markersize=4)
-    ax.set_yticks(y)
-    ax.set_yticklabels(sub[label_col].astype(str), fontsize=8)
-    ax.set_xlabel('League rank by behavioral dependence (1 = highest)', fontsize=13)
-    ax.invert_yaxis()
-    fig.tight_layout()
-    fig.savefig(fname, dpi=200)
-    plt.close(fig)
 
 
 if __name__ == '__main__':
@@ -96,7 +74,5 @@ if __name__ == '__main__':
     print(f'  top-{summary["topk_k"]} list retained on resampling  '
           f'{summary["topk_overlap"]:.1%} (chance = {summary["topk_chance_overlap"]:.1%})')
 
-    plot_rank_intervals(ranks, os.path.join(CF_DEP_PLOTS_DIR, 'player_rank_intervals.png'))
-
     print(f'\nWritten {SUMMARY_FILE}, {RANKS_FILE}')
-    print(f'Plot written to {CF_DEP_PLOTS_DIR}/player_rank_intervals.png')
+    print('Draw figures with src/experiments/cf_dependence_figures.py')

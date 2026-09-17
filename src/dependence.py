@@ -15,7 +15,14 @@ import pandas as pd
 SHOT_DELTA_COL = 'dep_delta'
 
 OBS_COL = 'expected_points'
+
+# The naive per-player 2PT baseline is the *reference* counterfactual, not a placeholder.
+# Alternative strategies (nearest feasible two, best feasible, passing, policy-based) are added
+# as additional columns and passed via `cf_col`; they never overwrite this one. Keeping the
+# baseline is what makes specification uncertainty measurable -- it is the spread of the metric
+# across strategies, which cannot be computed if the earlier strategy is thrown away.
 CF_COL = 'exp_pts_naive'
+
 THREE_COL = '3pt'
 
 STATS = ['dep_total', 'dep_per_shot', 'dep_per_3pa', 'dep_share']
