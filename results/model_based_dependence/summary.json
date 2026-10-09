@@ -1,0 +1,25 @@
+{
+  "models": [
+    "hgb",
+    "nn",
+    "cluster"
+  ],
+  "strategies": [
+    "naive",
+    "near_k100",
+    "best_q095_l025"
+  ],
+  "cell_size_ft": 0.25,
+  "max_radius_ft": 8.0,
+  "neighbor_count": 50,
+  "bootstrap_replicates": 200,
+  "evaluation_population": "all retained season shots from players with at least 20 season 3PA (Train + Test)",
+  "rows": 68880,
+  "full_season_rows": 88694,
+  "eligible_player_count": 255,
+  "minimum_season_3pa": 20,
+  "train_rows": 70954,
+  "test_rows": 17740,
+  "defender_geometry": "all five absolute defender coordinates recovered from parent pbp_final.csv by source_row_index",
+  "note": "The player cohort is selected by at least 20 season 3PA. All of each selected player's retained season shots contribute to player and team aggregates. Train provides the reference support for counterfactual probability surfaces. Five-defender coordinates are joined from pbp_final.csv by source_row_index."
+}

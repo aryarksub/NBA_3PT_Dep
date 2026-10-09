@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Model-Based Counterfactual Dependence Report</title>
+<style>
+:root{--ink:#182235;--muted:#5b6678;--line:#dce3ec;--paper:#fff;--wash:#f1f4f8;--blue:#194f90;--pale:#f7f9fc}
+*{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:1180px;margin:0 auto;padding:32px 20px 60px}section{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:26px;margin:0 0 20px;box-shadow:0 7px 22px rgba(27,43,65,.045)}
+h1,h2,h3{line-height:1.25;margin:0 0 14px}h1{font-size:32px}h2{font-size:23px}h3{font-size:17px;margin-top:22px}.lead{font-size:17px;color:#354257}.muted,.caption{color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin-top:20px}.card{background:var(--pale);border:1px solid var(--line);border-radius:12px;padding:14px}.card .label{color:var(--muted);font-size:13px}.card .value{font-size:23px;font-weight:700;color:var(--blue)}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px}table{width:100%;border-collapse:collapse;font-size:13px;min-width:700px}th,td{padding:9px 11px;border-bottom:1px solid #e8edf3;text-align:right;white-space:nowrap}th{background:#f4f7fb;color:#34425a;font-weight:650}th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:10px;margin:14px auto}.callout{border-left:4px solid #d08a21;background:#fff9ed;padding:13px 16px;border-radius:5px}.good{border-left-color:#267a5a;background:#f1faf5}.formula{background:#f7f9fc;border:1px solid var(--line);border-radius:10px;padding:16px;text-align:center;font:17px Georgia,serif;overflow:auto}.links a{margin-right:14px}.small{font-size:13px}.tag{display:inline-block;background:#edf3fb;color:#244e7f;border-radius:99px;padding:2px 9px;font-size:12px}
+@media(max-width:650px){main{padding:14px 10px 34px}section{padding:18px}h1{font-size:25px}h2{font-size:20px}}
+</style>
+</head>
+<body><main>
+<section>
+  <span class="tag">FULL-SEASON ANALYSIS</span>
+  <h1>Model-Based Counterfactual Dependence</h1>
+  <p class="lead">This report compares how three final expected-points models value observed three-point shots relative to feasible two-point alternatives. It includes players with at least 20 season three-point attempts and uses all of each selected player’s retained shots.</p>
+  <div class="cards">
+    <div class="card"><div class="label">Qualified players</div><div class="value">255</div></div>
+    <div class="card"><div class="label">Shots by qualified players</div><div class="value">68,880</div></div>
+    <div class="card"><div class="label">3PT attempts by qualified players</div><div class="value">24,250</div></div>
+  </div>
+</section>
+
+<section>
+  <h2>Research Question and Interpretation</h2>
+  <p>For each observed three-point attempt, how much expected-points value does the selected model assign to that shot compared with a specified two-point alternative? The resulting dependence measure describes the model-based value of the three-point choice under the stated replacement rule. It is not an observed causal effect and does not establish what a player would actually have done after relocating.</p>
+  <div class="formula">Dependence Share = Σ (Observed EP − Counterfactual EP) / Σ Observed EP</div>
+  <p>For an observed shot, expected points equal its predicted make probability multiplied by its point value. The counterfactual is scored as a two-point attempt. Two-point shots contribute zero difference. Positive dependence means the model values the observed three above its selected two-point alternative; negative values are possible when the alternative scores higher.</p>
+</section>
+
+<section>
+  <h2>Models and Held-Out Test Prediction Performance</h2>
+  <p><strong>18-Bucket HGB</strong> estimates make probability using the 18 location/defensive-pressure buckets. <strong>Unified MLP</strong> is the combined 2PT/3PT neural network. <strong>12-Cluster</strong> estimates make probability from similar shots within the fitted shot-location cluster.</p>
+  <div class="tablewrap"><table><thead><tr><th>Model</th><th>Test shots</th><th>Accuracy</th><th>ROC AUC</th><th>Log loss</th><th>Brier score</th><th>ECE</th></tr></thead><tbody>
+    <tr><td>18-Bucket HGB</td><td>17,740</td><td>0.6242</td><td>0.6479</td><td>0.6422</td><td>0.2262</td><td>0.0155</td></tr>
+    <tr><td>Unified MLP</td><td>17,740</td><td>0.6093</td><td>0.6134</td><td>0.6880</td><td>0.2409</td><td>0.0668</td></tr>
+    <tr><td>12-Cluster</td><td>17,740</td><td>0.6196</td><td>0.6272</td><td>0.6524</td><td>0.2305</td><td>0.0061</td></tr>
+  </tbody></table></div>
+  <p class="small muted">These classification metrics describe the underlying make-probability models. Dependence results below answer a different question and should not be interpreted as a model-performance ranking.</p>
+</section>
+
+<section>
+  <h2>Counterfactual Strategies</h2>
+  <ul>
+    <li><strong>Naive 2PT baseline:</strong> replace each three with that player’s full-season mean expected points on two-point shots; use the season league mean when that player has no two-point attempts.</li>
+    <li><strong>Nearest feasible 2PT:</strong> search two-point grid locations within 8 feet of the shooter, at 0.25-foot spacing, and retain candidates whose closest-defender distance is at least the original distance. Select the closest qualifying location. When none qualifies, use the naive baseline.</li>
+    <li><strong>Best feasible 2PT:</strong> score the same candidate grid after applying a 0.25 feet-per-feet defensive-closing penalty, then choose the candidate nearest the 95th percentile of candidate make probabilities.</li>
+  </ul>
+  <p>Observed probabilities come from the stored predictions for each of the three models. Train is the reference set for local counterfactual probability surfaces. The naive player 2PT baseline uses the player’s expected 2PT value from all retained season shots. All Train and Test shots for qualified players contribute to dependence aggregates.</p>
+</section>
+
+<section>
+  <h2>Player-Level Dependence</h2>
+  <p>The table reports the mean and median dependence share for players with at least 20 season 3PT attempts. All of each qualified player’s retained 2PT and 3PT shots contribute to their dependence estimate. The complete player-level file includes shot counts and bootstrap intervals.</p>
+  <div class="tablewrap"><table><thead><tr><th>Model</th><th>Counterfactual strategy</th><th>Median share</th><th>Mean share</th><th>Median 95% CI width</th></tr></thead><tbody>
+    <tr><td>HGB</td><td>Naive</td><td>4.76%</td><td>5.30%</td><td>3.57%</td></tr>
+    <tr><td>HGB</td><td>Nearest feasible</td><td>9.73%</td><td>10.07%</td><td>4.26%</td></tr>
+    <tr><td>HGB</td><td>Best feasible</td><td>7.90%</td><td>8.11%</td><td>4.25%</td></tr>
+    <tr><td>MLP</td><td>Naive</td><td>3.11%</td><td>4.19%</td><td>4.44%</td></tr>
+    <tr><td>MLP</td><td>Nearest feasible</td><td>9.12%</td><td>9.90%</td><td>4.93%</td></tr>
+    <tr><td>MLP</td><td>Best feasible</td><td>6.51%</td><td>6.90%</td><td>4.88%</td></tr>
+    <tr><td>12-Cluster</td><td>Naive</td><td>4.97%</td><td>4.97%</td><td>2.49%</td></tr>
+    <tr><td>12-Cluster</td><td>Nearest feasible</td><td>9.22%</td><td>9.45%</td><td>3.39%</td></tr>
+    <tr><td>12-Cluster</td><td>Best feasible</td><td>8.58%</td><td>8.86%</td><td>3.35%</td></tr>
+  </tbody></table></div>
+  <img src="plots/model_based_dependence/model_strategy_comparison.png" alt="Player dependence share compared across models and counterfactual strategies">
+  <p class="caption">Figure 1. Median player dependence share for the 20+ 3PA cohort across the three models and counterfactual strategies.</p>
+  <h3>Descriptive extremes under the best-feasible strategy</h3>
+  <p>These are the highest and lowest dependence shares among qualified players, with season attempt counts shown.</p>
+  <div class="tablewrap"><table><thead><tr><th>Model</th><th>Highest share</th><th>Share</th><th>Season 3PA</th><th>Lowest share</th><th>Share</th><th>Season 3PA</th></tr></thead><tbody>
+    <tr><td>HGB</td><td>Damjan Rudez</td><td>30.46%</td><td>25</td><td>Brandon Jennings</td><td>−12.77%</td><td>23</td></tr>
+    <tr><td>MLP</td><td>Channing Frye</td><td>28.25%</td><td>89</td><td>Jared Cunningham</td><td>−9.96%</td><td>27</td></tr>
+    <tr><td>12-Cluster</td><td>Mike Miller</td><td>23.54%</td><td>33</td><td>Dwyane Wade</td><td>1.21%</td><td>21</td></tr>
+  </tbody></table></div>
+</section>
+
+<section>
+  <h2>Team-Level Results</h2>
+  <p>Team-level dependence is calculated from all retained shots taken by the qualified player cohort. The table below gives the mean and median team share by model and strategy; the complete CSV includes each team’s totals, attempt counts, and bootstrap intervals.</p>
+  <div class="tablewrap"><table><thead><tr><th>Model</th><th>Strategy</th><th>Median team share</th><th>Mean team share</th></tr></thead><tbody>
+    <tr><td>HGB</td><td>Naive</td><td>4.99%</td><td>4.83%</td></tr><tr><td>HGB</td><td>Nearest feasible</td><td>9.79%</td><td>9.63%</td></tr><tr><td>HGB</td><td>Best feasible</td><td>7.93%</td><td>7.99%</td></tr>
+    <tr><td>MLP</td><td>Naive</td><td>3.68%</td><td>3.54%</td></tr><tr><td>MLP</td><td>Nearest feasible</td><td>9.69%</td><td>9.44%</td></tr><tr><td>MLP</td><td>Best feasible</td><td>7.07%</td><td>6.97%</td></tr>
+    <tr><td>12-Cluster</td><td>Naive</td><td>4.27%</td><td>4.39%</td></tr><tr><td>12-Cluster</td><td>Nearest feasible</td><td>8.57%</td><td>8.50%</td></tr><tr><td>12-Cluster</td><td>Best feasible</td><td>7.85%</td><td>7.90%</td></tr>
+  </tbody></table></div>
+</section>
+
+<section>
+  <h2>Dependence and Three-Point Attempt Rate</h2>
+  <p>Each point represents a player under one model using the best-feasible counterfactual. The plot helps show how dependence estimates vary with season 3PT attempt rate; it does not isolate a causal effect of attempt frequency.</p>
+  <img src="plots/model_based_dependence/dependence_vs_3pa_rate.png" alt="Player dependence share versus three-point attempt rate">
+  <p class="caption">Figure 2. Player dependence share versus full-season 3PT attempt rate among players with at least 20 attempts.</p>
+</section>
+
+<section>
+  <h2>Files and Reproducibility</h2>
+  <p>The complete tables and settings are available alongside the report. Player-level outputs include only players with at least 20 season 3PT attempts; each selected player’s full retained season of shots is included:</p>
+  <p class="links">
+    <a href="results/model_based_dependence/model_strategy_comparison.csv">Model/strategy summary</a>
+    <a href="results/model_based_dependence/player_dependence.csv">All player results</a>
+    <a href="results/model_based_dependence/team_dependence.csv">All team results</a>
+    <a href="results/model_based_dependence/shot_level_dependence.csv">Shot-level results</a>
+    <a href="results/model_based_dependence/counterfactual_diagnostics.csv">Counterfactual diagnostics</a>
+    <a href="results/model_based_dependence/model_test_metrics.csv">Test model metrics</a>
+    <a href="results/model_based_dependence/summary.json">Analysis settings</a>
+  </p>
+  <p>The analysis script is <code>src/experiments/model_based_dependence.py</code>. Open this report by double-clicking <code>dependence_report.html</code> in the repository folder. Keep the report, <code>plots/</code>, and <code>results/</code> together so its figures and data links resolve.</p>
+</section>
+
+<section>
+  <h2>Conclusion</h2>
+  <p>Across all three models, the nearest-feasible and best-feasible alternatives produce larger average player dependence shares than the naive player 2PT baseline. The magnitude and player ordering vary by model, with the 12-cluster model showing the highest average player dependence share under the best-feasible strategy.</p>
+</section>
+</main></body></html>
